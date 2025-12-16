@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sehatuna WatchOS Simulation</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            --watch-bg: #000000;
+            --watch-frame: #C0C0C0; /* Titanium */
+            --accent-color: #00E676; /* Bright Green */
+            --danger-color: #FF3B30;
+            --warning-color: #FF9500;
+            --info-color: #0A84FF;
+            --text-primary: #FFFFFF;
+            --text-secondary: #98989E;
+            --glass-bg: rgba(255, 255, 255, 0.12);
+        }
+
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            overflow: hidden;
+        }
+
+        /* --- Apple Watch Ultra Frame --- */
+        .watch-case {
+            width: 340px;
+            height: 420px;
+            background: #e2e2e2;
+            border-radius: 60px;
+            position: relative;
+            box-shadow: 
+                0 0 0 2px #d1d1d1,
+                0 20px 50px rgba(0,0,0,0.2),
+                inset 0 0 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        /* Digital Crown */
+        .crown {
+            position: absolute;
+            right: -12px;
+            top: 90px;
+            width: 16px;
+            height: 50px;
+            background: linear-gradient(to bottom, #b0b0b0, #f0f0f0, #b0b0b0);
+            border-radius: 4px 8px 8px 4px;
+            border-left: 1px solid #999;
+            z-index: 5;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .crown:active { transform: scale(0.95); }
+        .crown::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            height: 40%;
+            border-top: 2px solid #d35400; /* Orange ring */
+            border-bottom: 2px solid #d35400;
+        }
+
+        /* Side Button */
+        .side-btn {
+            position: absolute;
+            right: -6px;
+            top: 160px;
+            width: 8px;
+            height: 80px;
+            background: #cdcdcd;
+            border-radius: 0 4px 4px 0;
+            z-index: 5;
+        }
+
+        /* Action Button (Orange) */
+        .action-btn {
+            position: absolute;
+            left: -6px;
+            top: 110px;
+            width: 8px;
+            height: 50px;
+            background: #FF4500;
+            border-radius: 4px 0 0 4px;
+            z-index: 5;
+            cursor: pointer;
+        }
+
+        /* Screen */
+        .watch-screen {
+            width: 300px;
+            height: 380px;
+            background-color: var(--watch-bg);
+            border-radius: 44px;
+            overflow: hidden; /* Hide scrollbar usually, but we enable inside */
+            position: relative;
+            color: var(--text-primary);
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.05);
+        }
+
+        /* --- UI Components --- */
+        
+        /* Status Bar */
+        .status-bar {
+            height: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .time { color: var(--text-primary); }
+
+        /* Scroll Container */
+        .app-container {
+            height: 350px;
+            overflow-y: auto;
+            padding: 10px 12px 60px; /* Bottom padding for scroll */
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+        
+        /* Custom Scrollbar for Watch feel */
+        .app-container::-webkit-scrollbar { width: 4px; }
+        .app-container::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        /* Notification List Item */
+        .notif-item {
+            background: var(--glass-bg);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .notif-item:active { transform: scale(0.97); background: rgba(255,255,255,0.2); }
+
+        .app-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        
+        .notif-content { flex: 1; }
+        .notif-title { font-size: 14px; font-weight: 700; margin: 0 0 2px; }
+        .notif-subtitle { font-size: 12px; color: var(--text-secondary); margin: 0; line-height: 1.3; }
+        .notif-time { font-size: 10px; color: #666; margin-top: 4px; display: block;}
+
+        /* Icon Colors */
+        .icon-med { background: #34C759; color: black; }
+        .icon-alert { background: #FF3B30; color: white; }
+        .icon-warn { background: #FF9500; color: black; }
+        .icon-info { background: #0A84FF; color: white; }
+        .icon-sand { background: #AF52DE; color: white; }
+
+        /* Full Screen Alert View */
+        .full-alert {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(20px);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            box-sizing: border-box;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            transform: scale(0.9);
+        }
+        .full-alert.active { opacity: 1; pointer-events: all; transform: scale(1); }
+
+        .fa-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 16px;
+            margin-top: 10px;
+        }
+        .fa-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .fa-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .fa-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
+
+        .fa-actions {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .watch-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 20px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .watch-btn:active { opacity: 0.7; }
+        
+        .btn-primary { background: var(--accent-color); color: black; }
+        .btn-secondary { background: rgba(255,255,255,0.15); color: white; }
+        .btn-danger { background: var(--danger-color); color: white; }
+
+        .dismiss-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 24px;
+            height: 24px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* Toast on Watch */
+        .watch-toast {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: rgba(50, 50, 50, 0.9);
+            padding: 16px 24px;
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 200;
+            width: 80%;
+            text-align: center;
+        }
+        .watch-toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .toast-icon { font-size: 32px; color: var(--accent-color); }
+
+        /* Animation Pulse for SOS */
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 59, 48, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+        }
+        .sos-active { animation: pulse-ring 2s infinite; }
+
+        /* Home Screen Grid (App Launcher style just for header) */
+        .home-header {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .platform-logo { color: var(--accent-color); font-size: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="watch-case">
+        <!-- Physical Buttons -->
+        <div class="crown" onclick="goHome()" title="Home"></div>
+        <div class="side-btn"></div>
+        <div class="action-btn" onclick="triggerSOS()" title="SOS"></div>
+
+        <!-- Watch Screen -->
+        <div class="watch-screen">
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <span>صحتنا</span>
+                <span class="time" id="clock">10:09</span>
+            </div>
+
+            <!-- Main App Container -->
+            <div class="app-container" id="main-view">
+                
+                <div class="home-header">
+                    <i class="ph-fill ph-heartbeat platform-logo"></i>
+                    <h2 style="margin:0; font-size: 16px;">التنبيهات</h2>
+                </div>
+
+                <!-- 1. Medication Reminder (Self) -->
+                <div class="notif-item" onclick="openAlert('med-take')">
+                    <div class="app-icon icon-med"><i class="ph-bold ph-pill"></i></div>
+                    <div class="notif-content">
+                        <div class="notif-title">وقت الدواء</div>
+                        <div class="notif-subtitle">بنادول إكسترا (500mg)</div>
+                        <span class="notif-time">الآن</span>
+                    </div>
+                </div>
+
+                <!-- 2. Missed Med (Proxy) -->
+                <div class="notif-item" onclick="openAlert('med-missed')">
+                    <div class="app-icon icon-alert"><i class="ph-bold ph-warning"></i></div>
+                    <div class="notif-content">
+                        <div class="notif-title">تنبيه عدم أخذ الدواء</div>
+                        <div class="notif-subtitle">الوالد (عبدالله) لم يؤكد الجرعة</div>
+                        <span class="notif-time">منذ 30 دقيقة</span>
+                    </div>
+                </div>
+
+                <!-- 3. Sand Request -->
+                <div class="notif-item" onclick="openAlert('sand-req')">
+                    <div class="app-icon icon-sand"><i class="ph-bold ph-users"></i></div>
+                    <div class="notif-content">
+                        <div class="notif-title">مطلوب مرافق</div>
+                        <div class="notif-subtitle">موعد الوالد في مستشفى الحرس</div>
+                        <span class="notif-time">غداً 09:30 ص</span>
+                    </div>
+                </div>
+
+                <!-- 4. Low Stock -->
+                <div class="notif-item" onclick="openAlert('low-stock')">
+                    <div class="app-icon icon-warn"><i class="ph-bold ph-package"></i></div>
+                    <div class="notif-content">
+                        <div class="notif-title">نفاذ المخزون</div>
+                        <div class="notif-subtitle">Metformin شارف على الانتهاء</div>
+                        <span class="notif-time">متبقي 3 حبات</span>
+                    </div>
+                </div>
+
+                <!-- 5. Appointment Reminder -->
+                <div class="notif-item" onclick="openAlert('apt-soon')">
+                    <div class="app-icon icon-info"><i class="ph-bold ph-calendar-check"></i></div>
+                    <div class="notif-content">
+                        <div class="notif-title">موعد قريب</div>
+                        <div class="notif-subtitle">عيادات الماسة (أسنان)</div>
+                        <span class="notif-time">بعد ساعة</span>
+                    </div>
+                </div>
+
+                <!-- 6. Post Visit -->
+                <div class="notif-item" onclick="openAlert('post-visit')">
+                    <div class="app-icon icon-warn"><i class="ph-bold ph-clipboard-text"></i></div>
+                    <div class="notif-content">
+                        <div class="notif-title">تحديث الملف</div>
+                        <div class="notif-subtitle">انتهى موعد العيون. هل هناك جديد؟</div>
+                        <span class="notif-time">منذ ساعتين</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Full Screen Alert Container -->
+            <div id="alert-view" class="full-alert">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Toast -->
+            <div id="toast" class="watch-toast">
+                <i class="ph-fill ph-check-circle toast-icon"></i>
+                <span id="toast-msg">تم بنجاح</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div style="position: absolute; bottom: 20px; text-align: center; color: #666; font-size: 14px;">
+        <p>محاكاة Apple Watch Ultra</p>
+        <p>انقر على التاج (Crown) للعودة للرئيسية • الزر البرتقالي للطوارئ</p>
+    </div>
+
+    <script>
+        // Update Clock
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('clock').innerText = `${hours}:${minutes}`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Data for Alerts
+        const alertsData = {
+            'med-take': {
+                icon: 'ph-pill', color: '#34C759', title: 'وقت الدواء',
+                desc: 'حان موعد أخذ <b>بنادول إكسترا 500mg</b> (حبتين).',
+                actions: [
+                    { text: 'تأكيد الأخذ', class: 'btn-primary', action: 'showToast("تم تسجيل الجرعة")' },
+                    { text: 'تخطي', class: 'btn-secondary', action: 'showToast("تم تخطي الجرعة")' },
+                    { text: 'تذكير لاحقاً', class: 'btn-secondary', action: 'showToast("سيتم التذكير بعد 10د")' }
+                ]
+            },
+            'med-missed': {
+                icon: 'ph-warning', color: '#FF3B30', title: 'تحذير طبي',
+                desc: 'الوالد (عبدالله) لم يؤكد أخذ دواء الضغط المستحق منذ 30 دقيقة.',
+                actions: [
+                    { text: 'اتصال بالمريض', class: 'btn-primary', action: 'showToast("جاري الاتصال...")' },
+                    { text: 'أخذ نيابة عنه', class: 'btn-secondary', action: 'showToast("تم تسجيل الجرعة عن المريض")' }
+                ]
+            },
+            'sand-req': {
+                icon: 'ph-users', color: '#AF52DE', title: 'طلب مساندة',
+                desc: 'موعد الوالد في <b>مستشفى الحرس</b> غداً يحتاج إلى مرافق.',
+                actions: [
+                    { text: 'أنا سأرافقه', class: 'btn-primary', action: 'showToast("تم تسجيلك كمرافق")' },
+                    { text: 'اعتذار', class: 'btn-secondary', action: 'showToast("تم إرسال الاعتذار")' }
+                ]
+            },
+            'low-stock': {
+                icon: 'ph-package', color: '#FF9500', title: 'نفاذ المخزون',
+                desc: 'دواء Metformin للوالد شارف على الانتهاء. المتبقي يكفي ليوم واحد.',
+                actions: [
+                    { text: 'إضافة لقائمة الشراء', class: 'btn-primary', action: 'showToast("تمت الإضافة للقائمة")' },
+                    { text: 'تجاهل', class: 'btn-secondary', action: 'closeAlert()' }
+                ]
+            },
+            'apt-soon': {
+                icon: 'ph-car', color: '#0A84FF', title: 'موعد قريب',
+                desc: 'موعد الأسنان في عيادات الماسة يبدأ خلال ساعة. الطريق يستغرق 20 دقيقة.',
+                actions: [
+                    { text: 'فتح الخرائط', class: 'btn-primary', action: 'showToast("فتح Google Maps...")' },
+                    { text: 'تفاصيل الموعد', class: 'btn-secondary', action: 'closeAlert()' }
+                ]
+            },
+            'post-visit': {
+                icon: 'ph-clipboard-text', color: '#FF9500', title: 'متابعة زيارة',
+                desc: 'انتهى موعد العيون. هل صرف الطبيب أدوية جديدة؟',
+                actions: [
+                    { text: 'نعم، إضافة دواء', class: 'btn-primary', action: 'showToast("فتح نموذج الإضافة على الجوال")' },
+                    { text: 'لا، تحديث الحالة', class: 'btn-secondary', action: 'closeAlert()' }
+                ]
+            }
+        };
+
+        // Functions
+        function openAlert(id) {
+            const data = alertsData[id];
+            const view = document.getElementById('alert-view');
+            
+            view.innerHTML = `
+                <div class="dismiss-btn" onclick="closeAlert()"><i class="ph-bold ph-x"></i></div>
+                <div class="fa-header">
+                    <div class="fa-icon" style="background: ${data.color}20; color: ${data.color}">
+                        <i class="ph-fill ${data.icon}"></i>
+                    </div>
+                    <div class="fa-title">${data.title}</div>
+                    <div class="fa-desc">${data.desc}</div>
+                </div>
+                <div class="fa-actions">
+                    ${data.actions.map(btn => `
+                        <button class="watch-btn ${btn.class}" onclick="${btn.action}; setTimeout(closeAlert, 500)">
+                            ${btn.text}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+            
+            view.classList.add('active');
+        }
+
+        function closeAlert() {
+            document.getElementById('alert-view').classList.remove('active');
+        }
+
+        function goHome() {
+            closeAlert();
+            document.getElementById('main-view').scrollTop = 0;
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function triggerSOS() {
+            // Flash screen red effect
+            const screen = document.querySelector('.watch-screen');
+            screen.style.boxShadow = 'inset 0 0 50px red';
+            showToast("جاري إرسال نداء استغاثة...");
+            setTimeout(() => {
+                screen.style.boxShadow = 'inset 0 0 20px rgba(255,255,255,0.05)';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
