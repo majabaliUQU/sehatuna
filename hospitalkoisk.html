@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sehatuna Kiosk Interface</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['IBM Plex Sans Arabic', 'sans-serif'],
+                    },
+                    colors: {
+                        kiosk: {
+                            bg: '#F3F4F6',
+                            primary: '#006C35', 
+                            primaryDark: '#004D26',
+                            accent: '#A0CF3D',
+                            surface: '#FFFFFF',
+                            error: '#EF4444',
+                        }
+                    },
+                    boxShadow: {
+                        'btn': '0 4px 0 0 #004D26', 
+                        'btn-active': '0 0 0 0 #004D26',
+                        'float': '0 20px 40px -5px rgba(0, 0, 0, 0.15)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F3F4F6;
+            overflow: hidden;
+            user-select: none;
+            cursor: pointer; /* Changed to pointer for easier demo interaction */
+        }
+
+        .fade-in { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .slide-up { animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .scale-in { animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .k-btn { transition: all 0.1s; position: relative; top: 0; }
+        .k-btn:active { transform: translateY(4px); box-shadow: none !important; }
+
+        .timeout-bar {
+            position: fixed; top: 0; left: 0; height: 6px; background: #A0CF3D; width: 100%; z-index: 100; transition: width 1s linear;
+        }
+
+        .scan-line {
+            width: 100%; height: 4px; background: #00E676; position: absolute; top: 0; left: 0; animation: scan 2s infinite linear; box-shadow: 0 0 15px #00E676;
+        }
+        @keyframes scan { 0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; } }
+        
+        /* Keypad Styles */
+        .keypad-btn {
+            background: white; border-radius: 1rem; font-size: 1.5rem; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 0 0 #e5e7eb; transition: background 0.1s;
+        }
+        .keypad-btn:active { background: #f3f4f6; transform: translateY(2px); box-shadow: none; }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col font-sans text-gray-800">
+
+    <!-- Status Bar -->
+    <header class="bg-white h-20 px-8 flex justify-between items-center shadow-sm z-50">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-kiosk-primary rounded-full flex items-center justify-center text-white text-2xl">
+                <!-- LOGO CHANGED HERE -->
+                <i class="ph-fill ph-heartbeat"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 leading-none">صحتنا</h1>
+                <p class="text-sm text-gray-500 font-medium mt-1">نقطة الوصول الذكية</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full">
+                <i class="ph-fill ph-clock text-gray-500 text-xl"></i>
+                <span id="clock" class="text-xl font-bold text-gray-700 font-mono">10:42</span>
+            </div>
+            <button class="bg-white border-2 border-gray-200 text-gray-700 px-6 py-2 rounded-full font-bold text-lg">English</button>
+        </div>
+    </header>
+
+    <!-- Content Area -->
+    <main id="app-root" class="flex-1 relative overflow-hidden flex flex-col bg-gray-50">
+        <!-- Screens injected here -->
+    </main>
+
+    <!-- 1. IDLE SCREEN -->
+    <template id="screen-idle">
+        <div class="flex-1 flex flex-col items-center justify-center bg-gradient-to-b from-white to-gray-100 fade-in text-center p-12">
+            <div class="mb-12 relative">
+                <div class="absolute inset-0 bg-kiosk-primary opacity-10 rounded-full animate-ping"></div>
+                <div class="w-48 h-48 bg-white rounded-full shadow-float flex items-center justify-center text-kiosk-primary text-8xl relative z-10 border-4 border-white">
+                    <i class="ph-fill ph-hand-tap"></i>
+                </div>
+            </div>
+            <h2 class="text-5xl font-bold text-gray-800 mb-6">المس الشاشة للبدء</h2>
+            <p class="text-2xl text-gray-500">سجل وصولك أو اطلب المساعدة الطارئة</p>
+        </div>
+    </template>
+
+    <!-- 2. AUTH METHOD SCREEN -->
+    <template id="screen-auth">
+        <div class="flex-1 flex flex-col p-12 fade-in items-center justify-center">
+            <h2 class="text-4xl font-bold text-gray-800 mb-2">تسجيل الدخول</h2>
+            <p class="text-xl text-gray-500 mb-12">الرجاء اختيار طريقة التعريف</p>
+
+            <div class="grid grid-cols-2 gap-8 w-full max-w-4xl">
+                <!-- QR Scan -->
+                <button onclick="goToScan()" class="k-btn bg-white rounded-3xl shadow-float border-2 border-transparent hover:border-kiosk-primary p-12 flex flex-col items-center justify-center gap-6 group transition-all h-80">
+                    <div class="w-32 h-32 bg-green-50 rounded-full flex items-center justify-center text-kiosk-primary text-6xl group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ph-qr-code"></i>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-3xl font-bold text-gray-800 mb-2">تطبيق صحتنا</h3>
+                        <p class="text-lg text-gray-500">امسح الكود</p>
+                    </div>
+                </button>
+
+                <!-- ID Entry (ACTIVATED) -->
+                <button onclick="goToIDInput()" class="k-btn bg-white rounded-3xl shadow-card border-2 border-transparent hover:border-gray-300 p-12 flex flex-col items-center justify-center gap-6 group h-80">
+                    <div class="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 text-6xl">
+                        <i class="ph-fill ph-identification-card"></i>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-3xl font-bold text-gray-800 mb-2">رقم الهوية</h3>
+                        <p class="text-lg text-gray-500">الإدخال اليدوي</p>
+                    </div>
+                </button>
+            </div>
+            
+            <button onclick="resetApp()" class="absolute bottom-12 left-12 flex items-center gap-2 text-xl text-gray-500 font-bold bg-white px-8 py-4 rounded-full shadow-sm active:bg-gray-100">
+                <i class="ph-bold ph-arrow-right"></i> عودة
+            </button>
+        </div>
+    </template>
+
+    <!-- 3. SCANNER SIMULATION -->
+    <template id="screen-scan">
+        <div class="flex-1 flex flex-col items-center justify-center bg-gray-900 text-white fade-in relative">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4">ضع الباركود أمام القارئ</h2>
+            </div>
+            <div class="relative w-80 h-80 border-4 border-white/30 rounded-3xl overflow-hidden bg-black/50 backdrop-blur-sm">
+                <div class="absolute top-0 right-0 w-16 h-16 border-t-8 border-r-8 border-kiosk-accent rounded-tr-xl"></div>
+                <div class="absolute top-0 left-0 w-16 h-16 border-t-8 border-l-8 border-kiosk-accent rounded-tl-xl"></div>
+                <div class="absolute bottom-0 right-0 w-16 h-16 border-b-8 border-r-8 border-kiosk-accent rounded-br-xl"></div>
+                <div class="absolute bottom-0 left-0 w-16 h-16 border-b-8 border-l-8 border-kiosk-accent rounded-bl-xl"></div>
+                <div class="flex items-center justify-center h-full"><i class="ph-fill ph-qr-code text-9xl text-white/20"></i></div>
+                <div class="scan-line"></div>
+            </div>
+            <button onclick="resetApp()" class="absolute bottom-12 left-12 flex items-center gap-2 text-xl text-white font-bold border border-white/30 px-8 py-4 rounded-full active:bg-white/10">إلغاء</button>
+        </div>
+    </template>
+
+    <!-- 3.5 ID INPUT SCREEN (NEW) -->
+    <template id="screen-id-input">
+        <div class="flex-1 flex flex-col items-center justify-center p-8 fade-in">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8">أدخل رقم الهوية / الإقامة</h2>
+            
+            <div class="w-full max-w-md">
+                <!-- Display -->
+                <div id="id-display" class="bg-white border-2 border-gray-200 rounded-2xl h-20 mb-8 flex items-center justify-center text-4xl font-mono tracking-widest text-gray-700 shadow-inner">
+                    <!-- Numbers appear here -->
+                </div>
+
+                <!-- Keypad -->
+                <div class="grid grid-cols-3 gap-4 h-96">
+                    <button onclick="typeNum(1)" class="keypad-btn">1</button>
+                    <button onclick="typeNum(2)" class="keypad-btn">2</button>
+                    <button onclick="typeNum(3)" class="keypad-btn">3</button>
+                    <button onclick="typeNum(4)" class="keypad-btn">4</button>
+                    <button onclick="typeNum(5)" class="keypad-btn">5</button>
+                    <button onclick="typeNum(6)" class="keypad-btn">6</button>
+                    <button onclick="typeNum(7)" class="keypad-btn">7</button>
+                    <button onclick="typeNum(8)" class="keypad-btn">8</button>
+                    <button onclick="typeNum(9)" class="keypad-btn">9</button>
+                    <button onclick="clearNum()" class="keypad-btn text-red-500 bg-red-50">مسح</button>
+                    <button onclick="typeNum(0)" class="keypad-btn">0</button>
+                    <button onclick="submitID()" class="keypad-btn bg-kiosk-primary text-white shadow-btn hover:bg-green-700">
+                        <i class="ph-bold ph-check"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="showScreen('screen-auth')" class="absolute bottom-12 left-12 flex items-center gap-2 text-xl text-gray-500 font-bold bg-white px-8 py-4 rounded-full shadow-sm active:bg-gray-100">
+                <i class="ph-bold ph-arrow-right"></i> عودة
+            </button>
+        </div>
+    </template>
+
+    <!-- 4. DASHBOARD (MODIFIED: SOS ADDED, SERVICES REMOVED) -->
+    <template id="screen-dashboard">
+        <div class="flex-1 flex flex-col p-10 bg-gray-50 slide-up relative">
+            <div class="timeout-bar" id="timeout-progress"></div>
+
+            <!-- Welcome Header -->
+            <div class="flex justify-between items-start mb-16">
+                <div>
+                    <h2 class="text-4xl font-bold text-gray-900 mb-2">مرحباً، أحمد 👋</h2>
+                    <p class="text-xl text-gray-500">تم التعرف عليك وعلى مرافقيك بنجاح.</p>
+                </div>
+                <button onclick="resetApp()" class="bg-white text-gray-600 px-8 py-4 rounded-xl font-bold text-xl shadow-sm border border-gray-200 active:bg-gray-100 flex items-center gap-2">
+                    <i class="ph-bold ph-sign-out"></i> خروج
+                </button>
+            </div>
+
+            <!-- Smart Suggestion -->
+            <div class="bg-white border-r-8 border-kiosk-primary rounded-3xl p-10 shadow-float mb-12 flex justify-between items-center scale-in">
+                <div class="flex items-center gap-8">
+                    <div class="w-28 h-28 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 text-6xl">
+                        <i class="ph-fill ph-calendar-check"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="bg-blue-100 text-blue-800 px-4 py-1.5 rounded-lg font-bold text-lg">موعد بعد 20 دقيقة</span>
+                            <span class="bg-gray-100 text-gray-600 px-4 py-1.5 rounded-lg font-bold text-lg flex items-center gap-2"><i class="ph-fill ph-user"></i> الوالد (عبدالله)</span>
+                        </div>
+                        <h3 class="text-4xl font-bold text-gray-800 mb-2">عيادة الغدد الصماء - د. منى</h3>
+                        <p class="text-2xl text-gray-500">الدور الثاني، عيادة 204</p>
+                    </div>
+                </div>
+                <button onclick="confirmCheckIn()" class="k-btn bg-kiosk-primary text-white text-3xl font-bold py-8 px-16 rounded-2xl shadow-btn hover:bg-green-800 flex items-center gap-4">
+                    <i class="ph-bold ph-check-circle"></i> تسجيل وصول
+                </button>
+            </div>
+
+            <!-- SOS Button (NEW FEATURE) -->
+            <div class="mt-auto">
+                <button onclick="triggerKioskSOS()" class="k-btn w-full bg-red-50 border-2 border-red-200 text-red-600 rounded-2xl p-8 flex items-center justify-center gap-4 shadow-sm active:bg-red-100 group transition-all hover:bg-red-100">
+                    <div class="w-16 h-16 bg-red-200 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ph-siren text-3xl text-red-600"></i>
+                    </div>
+                    <div class="text-right">
+                        <h3 class="text-3xl font-bold">نداء استغاثة (SOS)</h3>
+                        <p class="text-xl text-red-400 opacity-80">إرسال موقع الكيوسك (مدخل 2) للمرافق فوراً</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <!-- 5. SUCCESS SCREEN -->
+    <template id="screen-success">
+        <div class="flex-1 flex flex-col items-center justify-center bg-white fade-in text-center p-12">
+            <div class="w-40 h-40 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-8xl mb-8 scale-in">
+                <i class="ph-fill ph-check"></i>
+            </div>
+            <h2 class="text-5xl font-bold text-gray-900 mb-4">تم تسجيل الوصول بنجاح</h2>
+            <p class="text-3xl text-gray-600 mb-12">يرجى التوجه إلى صالة الانتظار رقم <b class="text-gray-900">B-2</b></p>
+            
+            <div class="bg-gray-50 border-2 border-dashed border-gray-300 p-8 rounded-2xl w-full max-w-lg mb-12 relative overflow-hidden">
+                <h3 class="text-xl font-bold text-gray-500 mb-4">جاري طباعة التذكرة...</h3>
+                <div class="text-6xl font-black text-gray-800 tracking-widest font-mono">A-042</div>
+            </div>
+
+            <p class="text-lg text-gray-400">سيتم تسجيل الخروج تلقائياً خلال <span id="countdown">5</span>...</p>
+        </div>
+    </template>
+
+    <!-- 6. SOS SUCCESS POPUP -->
+    <div id="sos-popup" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-10 text-center max-w-lg w-full scale-in">
+            <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center text-red-600 text-5xl mx-auto mb-6 animate-pulse">
+                <i class="ph-fill ph-map-pin"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">تم إرسال الموقع!</h2>
+            <p class="text-xl text-gray-600 mb-8">تم تنبيه المرافق "سعيد" بموقعك الحالي:<br><b>مدخل العيادات الخارجية - بوابة 2</b></p>
+            <button onclick="document.getElementById('sos-popup').classList.add('hidden')" class="w-full bg-gray-100 text-gray-800 text-xl font-bold py-4 rounded-xl">إغلاق</button>
+        </div>
+    </div>
+
+    <script>
+        // Clock
+        setInterval(() => {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('clock').innerText = `${h}:${m}`;
+        }, 1000);
+
+        // Navigation
+        function showScreen(templateId) {
+            const root = document.getElementById('app-root');
+            const template = document.getElementById(templateId);
+            root.innerHTML = '';
+            root.appendChild(template.content.cloneNode(true));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            showScreen('screen-idle');
+            document.getElementById('app-root').addEventListener('click', (e) => {
+                if (document.querySelector('h2') && document.querySelector('h2').innerText.includes('المس الشاشة')) {
+                    showScreen('screen-auth');
+                }
+            });
+        });
+
+        // Auth Logic
+        function goToScan() {
+            showScreen('screen-scan');
+            setTimeout(() => { showScreen('screen-dashboard'); startInactivityTimer(); }, 2500);
+        }
+
+        // Keypad Logic
+        let currentID = "";
+        function goToIDInput() {
+            showScreen('screen-id-input');
+            currentID = "";
+        }
+        function typeNum(num) {
+            if (currentID.length < 10) {
+                currentID += num;
+                updateDisplay();
+            }
+        }
+        function clearNum() {
+            currentID = "";
+            updateDisplay();
+        }
+        function updateDisplay() {
+            const display = document.getElementById('id-display');
+            if(display) display.innerText = currentID.split('').join(' ');
+        }
+        function submitID() {
+            if (currentID.length >= 5) { // Simple validation simulation
+                showScreen('screen-dashboard');
+                startInactivityTimer();
+            } else {
+                // Shake effect logic could go here
+            }
+        }
+
+        // Actions
+        function confirmCheckIn() {
+            showScreen('screen-success');
+            let count = 5;
+            const interval = setInterval(() => {
+                count--;
+                const el = document.getElementById('countdown');
+                if(el) el.innerText = count;
+                if(count <= 0) { clearInterval(interval); resetApp(); }
+            }, 1000);
+        }
+
+        function triggerKioskSOS() {
+            document.getElementById('sos-popup').classList.remove('hidden');
+            // Auto close after 5 seconds
+            setTimeout(() => {
+                document.getElementById('sos-popup').classList.add('hidden');
+            }, 5000);
+        }
+
+        function resetApp() {
+            clearTimeout(inactivityTimer);
+            showScreen('screen-idle');
+        }
+
+        // Timer
+        let inactivityTimer;
+        function startInactivityTimer() {
+            const bar = document.getElementById('timeout-progress');
+            if(bar) {
+                bar.style.width = '100%';
+                setTimeout(() => { bar.style.width = '0%'; }, 100);
+            }
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(resetApp, 30000);
+        }
+
+        document.addEventListener('click', () => {
+            if(document.getElementById('timeout-progress')) {
+                const bar = document.getElementById('timeout-progress');
+                bar.style.transition = 'none'; bar.style.width = '100%';
+                setTimeout(() => { bar.style.transition = 'width 30s linear'; bar.style.width = '0%'; }, 10);
+                clearTimeout(inactivityTimer); inactivityTimer = setTimeout(resetApp, 30000);
+            }
+        });
+    </script>
+</body>
+</html>
