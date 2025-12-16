@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sehatuna Pharmacy Kiosk</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['IBM Plex Sans Arabic', 'sans-serif'],
+                    },
+                    colors: {
+                        pharma: {
+                            bg: '#F3F4F6',
+                            primary: '#006C35', 
+                            primaryDark: '#004D26',
+                            accent: '#A0CF3D',
+                            surface: '#FFFFFF',
+                            error: '#EF4444',
+                            blue: '#0284C7', 
+                        }
+                    },
+                    boxShadow: {
+                        'btn': '0 4px 0 0 #004D26',
+                        'btn-active': '0 0 0 0 #004D26',
+                        'float': '0 20px 40px -5px rgba(0, 108, 53, 0.15)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F3F4F6;
+            overflow: hidden;
+            user-select: none;
+            cursor: pointer;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Transitions --- */
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .slide-up { animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .scale-in { animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+
+        /* --- Components --- */
+        .k-btn { transition: all 0.1s; position: relative; top: 0; }
+        .k-btn:active { transform: translateY(4px); box-shadow: none !important; }
+
+        .progress-line {
+            height: 6px;
+            background: #E5E7EB;
+            overflow: hidden;
+            border-radius: 3px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #006C35;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .scan-line {
+            width: 100%; height: 4px; background: #00E676; position: absolute; top: 0; left: 0; animation: scan 2s infinite linear; box-shadow: 0 0 15px #00E676;
+        }
+        @keyframes scan { 0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; } }
+
+        /* Keypad */
+        .keypad-btn {
+            background: white; border-radius: 1rem; font-size: 1.5rem; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 0 0 #e5e7eb; transition: all 0.1s;
+            color: #374151;
+            padding: 1rem 0;
+        }
+        .keypad-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        /* Product Card */
+        .product-card {
+            transition: all 0.2s ease;
+        }
+        .product-card:active { transform: scale(0.98); }
+        .product-card.selected { border-color: #006C35; background-color: #F0FDF4; }
+
+        /* Beneficiary Tab */
+        .beneficiary-tab {
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .beneficiary-tab.active {
+            background-color: white;
+            border-color: #006C35;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .beneficiary-tab.inactive {
+            background-color: #f3f4f6;
+            color: #6b7280;
+            opacity: 0.8;
+        }
+
+        .scroll-content {
+            overflow-y: auto;
+            height: 100%;
+            padding-bottom: 2rem;
+        }
+        .scroll-content::-webkit-scrollbar { display: none; }
+        .scroll-content { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-pharma-bg text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-white px-4 md:px-10 py-3 flex justify-between items-center shadow-sm z-50 flex-shrink-0 h-20 md:h-24">
+        <div class="flex items-center gap-3 md:gap-5">
+            <div class="w-10 h-10 md:w-14 md:h-14 bg-pharma-primary rounded-full flex items-center justify-center text-white text-xl md:text-3xl shadow-lg flex-shrink-0">
+                <i class="ph-fill ph-heartbeat"></i>
+            </div>
+            <div class="flex flex-col">
+                <h1 class="text-lg md:text-3xl font-bold text-gray-900 leading-none">صيدلية النهدي</h1>
+                <p class="text-xs md:text-base text-gray-500 font-medium mt-0.5 md:mt-1">أصرف بسهولة مع صحتنا</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3 md:gap-6">
+            <div class="hidden md:flex items-center gap-3 bg-gray-100 px-6 py-3 rounded-full border border-gray-200">
+                <i class="ph-duotone ph-clock text-pharma-primary text-2xl"></i>
+                <span id="clock" class="text-2xl font-bold text-gray-700 font-mono">12:30</span>
+            </div>
+            <!-- EXIT BUTTON (Controlled by JS) -->
+            <button id="exit-btn" onclick="resetApp()" class="hidden bg-red-50 text-red-600 px-4 py-2 md:px-6 md:py-3 rounded-full font-bold text-sm md:text-lg border border-red-100 active:bg-red-100 flex items-center gap-2 transition-colors hover:bg-red-100">
+                <i class="ph-bold ph-sign-out"></i> <span class="hidden md:inline">خروج</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main App Container -->
+    <main id="app-root" class="flex-1 relative flex flex-col overflow-hidden w-full h-full">
+        <!-- Screens injected here -->
+    </main>
+
+    <!-- --- SCREENS --- -->
+
+    <!-- 1. IDLE SCREEN -->
+    <template id="screen-idle">
+        <div class="flex-1 flex flex-col items-center justify-center fade-in p-6 text-center bg-gradient-to-b from-white to-gray-50 h-full">
+            <div class="relative mb-8 md:mb-16">
+                <div class="absolute inset-0 bg-pharma-primary opacity-10 rounded-full animate-ping"></div>
+                <div class="w-40 h-40 md:w-64 md:h-64 bg-white rounded-full flex items-center justify-center text-pharma-primary text-6xl md:text-9xl relative z-10 shadow-float border-4 md:border-8 border-white">
+                    <i class="ph-duotone ph-pill"></i>
+                </div>
+            </div>
+            
+            <h2 class="text-3xl md:text-6xl font-black text-gray-900 mb-4 md:mb-6 tracking-tight">اصرف دواءك بسهولة</h2>
+            <p class="text-lg md:text-3xl text-gray-500 mb-8 md:mb-16 font-medium">امسح الكود أو أدخل الهوية للبدء</p>
+
+            <button onclick="showScreen('screen-auth')" class="k-btn bg-pharma-primary text-white text-xl md:text-3xl font-bold py-4 px-12 md:py-8 md:px-24 rounded-full shadow-btn flex items-center gap-4 md:gap-6 hover:bg-pharma-primaryDark w-full md:w-auto justify-center">
+                <i class="ph-bold ph-hand-tap"></i> اضغط هنا للبدء
+            </button>
+        </div>
+    </template>
+
+    <!-- 2. AUTH SCREEN -->
+    <template id="screen-auth">
+        <div class="flex-1 flex flex-col p-6 md:p-16 fade-in items-center justify-center h-full">
+            <h2 class="text-2xl md:text-4xl font-bold text-gray-800 mb-8 md:mb-12 text-center">كيف تود تسجيل الدخول؟</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 w-full max-w-5xl">
+                <!-- QR Option -->
+                <button onclick="goToScan()" class="k-btn bg-white rounded-3xl border-4 border-transparent hover:border-pharma-primary hover:bg-green-50 shadow-float p-6 md:p-10 flex flex-row md:flex-col items-center justify-center gap-6 group transition-all h-auto md:h-96">
+                    <div class="w-20 h-20 md:w-32 md:h-32 bg-green-100 rounded-full flex items-center justify-center text-pharma-primary text-4xl md:text-6xl group-hover:scale-110 transition-transform flex-shrink-0">
+                        <i class="ph-fill ph-qr-code"></i>
+                    </div>
+                    <div class="text-right md:text-center">
+                        <h3 class="text-xl md:text-3xl font-bold text-gray-800 mb-1 md:mb-2">تطبيق صحتنا</h3>
+                        <p class="text-sm md:text-xl text-gray-500">الأسرع والأسهل (Scan)</p>
+                    </div>
+                </button>
+
+                <!-- ID Option -->
+                <button onclick="goToIDInput()" class="k-btn bg-white rounded-3xl border-4 border-transparent hover:border-gray-300 hover:bg-gray-50 shadow-float p-6 md:p-10 flex flex-row md:flex-col items-center justify-center gap-6 group transition-all h-auto md:h-96">
+                    <div class="w-20 h-20 md:w-32 md:h-32 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 text-3xl md:text-5xl group-hover:scale-110 transition-transform flex-shrink-0">
+                        <i class="ph-fill ph-identification-card"></i>
+                    </div>
+                    <div class="text-right md:text-center">
+                        <h3 class="text-xl md:text-3xl font-bold text-gray-800 mb-1 md:mb-2">رقم الهوية</h3>
+                        <p class="text-sm md:text-xl text-gray-500">الإدخال اليدوي</p>
+                    </div>
+                </button>
+            </div>
+            
+            <button onclick="resetApp()" class="mt-8 md:absolute md:bottom-10 md:left-10 text-lg md:text-xl text-gray-500 font-bold bg-white px-8 py-4 rounded-full shadow-sm active:bg-gray-100 flex items-center gap-2">
+                <i class="ph-bold ph-arrow-right"></i> إلغاء
+            </button>
+        </div>
+    </template>
+
+    <!-- 3. SCANNER SCREEN -->
+    <template id="screen-scan">
+        <div class="flex-1 flex flex-col items-center justify-center bg-gray-900 text-white fade-in relative h-full">
+            <div class="text-center mb-8 md:mb-12">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4 md:mb-6">ضع الباركود أمام القارئ</h2>
+                <p class="text-lg md:text-2xl text-gray-400">يوجد القارئ أسفل الشاشة</p>
+            </div>
+            
+            <div class="relative w-64 h-64 md:w-96 md:h-96 border-4 border-white/30 rounded-[2rem] md:rounded-[3rem] overflow-hidden bg-black/50 backdrop-blur-sm">
+                <div class="absolute top-0 right-0 w-12 h-12 md:w-20 md:h-20 border-t-8 border-r-8 border-pharma-accent rounded-tr-3xl"></div>
+                <div class="absolute top-0 left-0 w-12 h-12 md:w-20 md:h-20 border-t-8 border-l-8 border-pharma-accent rounded-tl-3xl"></div>
+                <div class="absolute bottom-0 right-0 w-12 h-12 md:w-20 md:h-20 border-b-8 border-r-8 border-pharma-accent rounded-br-3xl"></div>
+                <div class="absolute bottom-0 left-0 w-12 h-12 md:w-20 md:h-20 border-b-8 border-l-8 border-pharma-accent rounded-bl-3xl"></div>
+                
+                <div class="flex items-center justify-center h-full">
+                    <i class="ph-fill ph-qr-code text-7xl md:text-9xl text-white/20"></i>
+                </div>
+                <div class="scan-line"></div>
+            </div>
+
+            <button onclick="resetApp()" class="absolute bottom-10 left-10 flex items-center gap-2 text-lg md:text-xl text-white font-bold border-2 border-white/30 px-8 py-3 md:px-10 md:py-5 rounded-full active:bg-white/10">
+                إلغاء
+            </button>
+        </div>
+    </template>
+
+    <!-- 3.5 ID INPUT SCREEN -->
+    <template id="screen-id-input">
+        <div class="flex-1 flex flex-col items-center p-4 md:p-8 fade-in h-full overflow-hidden">
+            <h2 class="text-2xl md:text-4xl font-bold text-gray-800 mb-4 md:mb-10 flex-shrink-0 text-center mt-4">أدخل رقم الهوية / الإقامة</h2>
+            
+            <div class="w-full max-w-lg flex flex-col flex-1 min-h-0">
+                <div id="id-display" dir="ltr" class="bg-white border-4 border-gray-200 rounded-3xl h-16 md:h-24 mb-4 md:mb-10 flex-shrink-0 flex items-center justify-center text-3xl md:text-4xl font-mono tracking-widest text-gray-800 shadow-inner whitespace-nowrap overflow-hidden transition-all duration-200"></div>
+
+                <div class="grid grid-cols-3 gap-3 md:gap-6 flex-grow overflow-y-auto pb-20 md:pb-0">
+                    <button onclick="typeNum(1)" class="keypad-btn">1</button>
+                    <button onclick="typeNum(2)" class="keypad-btn">2</button>
+                    <button onclick="typeNum(3)" class="keypad-btn">3</button>
+                    <button onclick="typeNum(4)" class="keypad-btn">4</button>
+                    <button onclick="typeNum(5)" class="keypad-btn">5</button>
+                    <button onclick="typeNum(6)" class="keypad-btn">6</button>
+                    <button onclick="typeNum(7)" class="keypad-btn">7</button>
+                    <button onclick="typeNum(8)" class="keypad-btn">8</button>
+                    <button onclick="typeNum(9)" class="keypad-btn">9</button>
+                    <button onclick="deleteDigit()" class="keypad-btn text-orange-600 bg-orange-50 hover:bg-orange-100"><i class="ph-bold ph-backspace"></i></button>
+                    <button onclick="typeNum(0)" class="keypad-btn">0</button>
+                    <button onclick="submitID()" class="keypad-btn bg-pharma-primary text-white shadow-btn hover:bg-green-800 active:translate-y-1">
+                        <i class="ph-bold ph-check text-2xl md:text-3xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="showScreen('screen-auth')" class="absolute bottom-4 left-4 md:bottom-10 md:left-10 flex items-center gap-2 text-lg md:text-xl text-gray-500 font-bold bg-white px-6 py-3 md:px-8 md:py-4 rounded-full shadow-sm active:bg-gray-100 z-10">
+                <i class="ph-bold ph-arrow-right"></i> عودة
+            </button>
+        </div>
+    </template>
+
+    <!-- 4. DASHBOARD (SMART PHARMACY) -->
+    <template id="screen-dashboard">
+        <div class="flex-1 flex flex-col p-6 md:p-10 slide-up relative h-full">
+            <div class="timeout-bar fixed top-0 left-0 h-2 bg-pharma-accent w-full z-50 transition-all duration-[30000ms] ease-linear" id="timer-bar"></div>
+
+            <div class="scroll-content">
+                <!-- Beneficiary Switcher (NEW) -->
+                <div class="flex gap-4 mb-6 overflow-x-auto pb-2" id="beneficiary-list">
+                    <!-- Injected via JS -->
+                </div>
+
+                <!-- Dashboard Header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                    <div>
+                        <h2 class="text-2xl md:text-4xl font-bold text-gray-900 mb-2">
+                            لمن الوصفة: <span id="current-patient-name" class="text-pharma-primary">سارة أحمد</span>
+                        </h2>
+                        <p class="text-sm md:text-xl text-gray-500 flex items-center gap-2" id="status-text">
+                            <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+                            وصفة نشطة جاهزة للصرف
+                        </p>
+                    </div>
+                    <!-- Help Button -->
+                    <button onclick="triggerSOS()" class="w-full md:w-auto bg-red-50 text-red-600 px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold text-lg md:text-xl shadow-sm border-2 border-red-100 active:bg-red-100 flex items-center justify-center gap-3 hover:bg-red-100 transition-colors">
+                        <i class="ph-fill ph-siren text-2xl"></i>
+                        مساعدة الصيدلي
+                    </button>
+                </div>
+
+                <!-- Prescription Container (Dynamic) -->
+                <div id="prescription-container">
+                    <!-- Injected via JS -->
+                </div>
+
+                <!-- Suggestions -->
+                <div class="flex justify-between items-end mb-6">
+                    <h3 class="text-lg md:text-2xl font-bold text-gray-700 flex items-center gap-2">
+                        <i class="ph-fill ph-sparkle text-yellow-500"></i>
+                        مقترحات (إختياري)
+                    </h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pb-10">
+                    <button onclick="toggleSelection(this)" class="product-card k-btn bg-white p-4 rounded-2xl border-4 border-transparent shadow-sm flex flex-row md:flex-col items-center text-right md:text-center gap-4 relative overflow-hidden active:scale-95 transition-all hover:shadow-md">
+                        <div class="w-16 h-16 md:w-full md:h-24 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600 text-4xl md:text-5xl flex-shrink-0">
+                            <i class="ph-duotone ph-eye"></i>
+                        </div>
+                        <div class="w-full">
+                            <h4 class="text-lg font-bold text-gray-800 mb-1">عدسات ملونة</h4>
+                            <div class="flex justify-start md:justify-center items-center gap-2">
+                                <span class="text-gray-400 line-through text-sm">120 ر.س</span>
+                                <span class="text-pharma-primary font-bold text-xl">89 ر.س</span>
+                            </div>
+                        </div>
+                        <div class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">عرض خاص</div>
+                        <div class="selection-check w-8 h-8 md:absolute md:top-2 md:right-2 md:w-6 md:h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-white transition-colors bg-white flex-shrink-0">
+                            <i class="ph-bold ph-check text-xs"></i>
+                        </div>
+                    </button>
+
+                    <button onclick="toggleSelection(this)" class="product-card k-btn bg-white p-4 rounded-2xl border-4 border-transparent shadow-sm flex flex-row md:flex-col items-center text-right md:text-center gap-4 relative overflow-hidden active:scale-95 transition-all hover:shadow-md">
+                        <div class="w-16 h-16 md:w-full md:h-24 bg-pink-50 rounded-xl flex items-center justify-center text-pink-500 text-4xl md:text-5xl flex-shrink-0">
+                            <i class="ph-duotone ph-hand-heart"></i>
+                        </div>
+                        <div class="w-full">
+                            <h4 class="text-lg font-bold text-gray-800 mb-1">مناكير عضوي</h4>
+                            <div class="flex justify-start md:justify-center items-center gap-2">
+                                <span class="text-pharma-primary font-bold text-xl">45 ر.س</span>
+                            </div>
+                        </div>
+                        <div class="selection-check w-8 h-8 md:absolute md:top-2 md:right-2 md:w-6 md:h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-white transition-colors bg-white flex-shrink-0">
+                            <i class="ph-bold ph-check text-xs"></i>
+                        </div>
+                    </button>
+
+                    <button onclick="toggleSelection(this)" class="product-card k-btn bg-white p-4 rounded-2xl border-4 border-transparent shadow-sm flex flex-row md:flex-col items-center text-right md:text-center gap-4 relative overflow-hidden active:scale-95 transition-all hover:shadow-md">
+                        <div class="w-16 h-16 md:w-full md:h-24 bg-orange-50 rounded-xl flex items-center justify-center text-orange-500 text-4xl md:text-5xl flex-shrink-0">
+                            <i class="ph-duotone ph-bandaids"></i>
+                        </div>
+                        <div class="w-full">
+                            <h4 class="text-lg font-bold text-gray-800 mb-1">لصقات ظهر</h4>
+                            <div class="flex justify-start md:justify-center items-center gap-2">
+                                <span class="text-pharma-primary font-bold text-xl">25 ر.س</span>
+                            </div>
+                        </div>
+                        <div class="selection-check w-8 h-8 md:absolute md:top-2 md:right-2 md:w-6 md:h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-white transition-colors bg-white flex-shrink-0">
+                            <i class="ph-bold ph-check text-xs"></i>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- 5. SUCCESS SCREEN -->
+    <template id="screen-success">
+        <div class="flex-1 flex flex-col items-center justify-center fade-in bg-white p-8 text-center h-full overflow-hidden">
+            <div class="w-24 h-24 md:w-32 md:h-32 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-5xl md:text-6xl mb-6 scale-in shadow-lg">
+                <i class="ph-fill ph-check"></i>
+            </div>
+            <h2 class="text-3xl md:text-5xl font-bold text-gray-900 mb-4">تم تأكيد الطلب!</h2>
+            <p class="text-xl md:text-2xl text-gray-500 mb-10">جاري تجهيز الأدوية</p>
+
+            <div class="bg-gray-50 border-4 border-dashed border-gray-300 rounded-[2rem] p-8 w-full max-w-xl mb-10 relative shadow-sm">
+                <div class="absolute -left-6 top-1/2 w-12 h-12 bg-white rounded-full border-r-4 border-gray-300 transform -translate-y-1/2"></div>
+                <div class="absolute -right-6 top-1/2 w-12 h-12 bg-white rounded-full border-l-4 border-gray-300 transform -translate-y-1/2"></div>
+                <p class="text-lg md:text-xl text-gray-500 font-medium mb-2">رقم التذكرة</p>
+                <div class="text-6xl md:text-7xl font-black text-pharma-primary font-mono tracking-widest mb-6">P-092</div>
+                <div class="flex justify-between items-center pt-6 border-t-2 border-gray-200">
+                    <div class="text-right"><p class="text-gray-500 text-sm md:text-base">نافذة الاستلام</p><p class="text-xl md:text-2xl font-bold text-gray-800">شباك 3</p></div>
+                    <div class="text-left"><p class="text-gray-500 text-sm md:text-base">الوقت المتوقع</p><p class="text-xl md:text-2xl font-bold text-gray-800">دقيقتين</p></div>
+                </div>
+            </div>
+
+            <div class="w-full max-w-lg mt-auto mb-4">
+                <div class="flex justify-between text-base text-gray-400 mb-2 font-bold"><span>تسجيل خروج تلقائي</span><span id="countdown">10</span></div>
+                <div class="progress-line h-3 rounded-full"><div class="progress-fill" style="width: 100%"></div></div>
+            </div>
+        </div>
+    </template>
+
+    <!-- SOS Popup -->
+    <div id="sos-popup" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="bg-white rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 text-center max-w-xl w-full scale-in">
+            <div class="w-24 h-24 md:w-32 md:h-32 bg-red-100 rounded-full flex items-center justify-center text-red-600 text-5xl md:text-6xl mx-auto mb-6 md:mb-8 animate-pulse"><i class="ph-fill ph-headset"></i></div>
+            <h2 class="text-2xl md:text-4xl font-bold text-gray-900 mb-4">جاري استدعاء الصيدلي</h2>
+            <p class="text-lg md:text-2xl text-gray-600 mb-8 md:mb-10">سيأتي أحد الموظفين لمساعدتك فوراً في جهاز رقم #04</p>
+            <button onclick="document.getElementById('sos-popup').classList.add('hidden')" class="w-full bg-gray-100 text-gray-800 text-xl md:text-2xl font-bold py-4 md:py-6 rounded-2xl border-2 border-gray-200">إلغاء الطلب</button>
+        </div>
+    </div>
+
+    <!-- Error Toast -->
+    <div id="toast" class="fixed top-12 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 md:px-8 md:py-4 rounded-2xl shadow-2xl z-[200] transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none flex items-center gap-3 md:gap-4 text-lg md:text-xl font-bold w-max max-w-[90%]">
+        <i class="ph-fill ph-warning-circle text-2xl md:text-3xl"></i>
+        <span id="toast-message">خطأ</span>
+    </div>
+
+    <script>
+        // Data for Profiles & Prescriptions
+        const profiles = {
+            'self': {
+                name: 'سارة أحمد',
+                relation: 'أنا',
+                prescription: {
+                    id: '#9924',
+                    doctor: 'د. خالد العتيبي',
+                    clinic: 'عيادة الأطفال',
+                    meds: [
+                        { name: 'Augmentin 600mg', icon: 'ph-pill', color: 'text-pharma-primary' },
+                        { name: 'Adol Syrup', icon: 'ph-drop', color: 'text-blue-500' }
+                    ]
+                }
+            },
+            'father': {
+                name: 'عبدالله (الوالد)',
+                relation: 'والد',
+                prescription: {
+                    id: '#8812',
+                    doctor: 'د. منى الغامدي',
+                    clinic: 'عيادة السكري',
+                    meds: [
+                        { name: 'Metformin 500mg', icon: 'ph-pill', color: 'text-pharma-primary' },
+                        { name: 'Insulin Pen', icon: 'ph-syringe', color: 'text-orange-500' }
+                    ]
+                }
+            },
+            'child': {
+                name: 'ياسر (الابن)',
+                relation: 'ابن',
+                prescription: null // No active prescription
+            }
+        };
+
+        let currentProfileId = 'self';
+
+        // Clock
+        setInterval(() => {
+            const d = new Date();
+            const clockElement = document.getElementById('clock');
+            if (clockElement) {
+                clockElement.innerText = d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:false});
+            }
+        }, 1000);
+
+        // Navigation
+        function showScreen(id) {
+            const root = document.getElementById('app-root');
+            const template = document.getElementById(id);
+            if (!root) { console.error('Root not found'); return; }
+            if (!template) { console.error('Template not found:', id); return; }
+            
+            root.innerHTML = '';
+            root.appendChild(template.content.cloneNode(true));
+            
+            if(id === 'screen-dashboard') {
+                setTimeout(() => {
+                    const bar = document.getElementById('timer-bar');
+                    if(bar) bar.style.width = '0%';
+                }, 100);
+                renderBeneficiaries();
+                renderPrescription();
+            }
+
+            // TOGGLE EXIT BUTTON
+            const exitBtn = document.getElementById('exit-btn');
+            if (exitBtn) {
+                if (id === 'screen-idle') {
+                    exitBtn.classList.add('hidden');
+                    exitBtn.classList.remove('flex');
+                } else {
+                    exitBtn.classList.remove('hidden');
+                    exitBtn.classList.add('flex');
+                }
+            }
+        }
+
+        // Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            showScreen('screen-idle');
+        });
+
+        function goToScan() {
+            showScreen('screen-scan');
+            setTimeout(() => { showScreen('screen-dashboard'); }, 2500);
+        }
+
+        // Keypad Logic
+        let currentID = "";
+        function goToIDInput() {
+            showScreen('screen-id-input');
+            currentID = "";
+        }
+        function typeNum(num) {
+            if (currentID.length < 10) {
+                currentID += num;
+                updateDisplay();
+            }
+        }
+        function deleteDigit() {
+            currentID = currentID.slice(0, -1);
+            updateDisplay();
+        }
+        function clearNum() {
+            currentID = "";
+            updateDisplay();
+        }
+        function updateDisplay() {
+            const display = document.getElementById('id-display');
+            if(display) display.innerText = currentID.split('').join(' ');
+        }
+        function submitID() {
+            const display = document.getElementById('id-display');
+            if (currentID.length === 10) {
+                showScreen('screen-dashboard');
+            } else {
+                showToast("الرجاء إدخال 10 أرقام صحيحة");
+                if(display) {
+                    display.classList.remove('shake');
+                    void display.offsetWidth;
+                    display.classList.add('shake');
+                    display.classList.add('border-red-400');
+                    setTimeout(() => display.classList.remove('border-red-400'), 500);
+                }
+            }
+        }
+
+        // Dashboard & Beneficiary Logic
+        function renderBeneficiaries() {
+            const list = document.getElementById('beneficiary-list');
+            if(!list) return;
+            
+            let html = '';
+            for (const [key, profile] of Object.entries(profiles)) {
+                const isActive = key === currentProfileId;
+                const hasPrescription = !!profile.prescription;
+                
+                html += `
+                    <button onclick="switchProfile('${key}')" class="beneficiary-tab flex-shrink-0 px-6 py-3 rounded-xl flex items-center gap-3 ${isActive ? 'active' : 'inactive'}">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${isActive ? 'bg-pharma-primary text-white' : 'bg-gray-200 text-gray-500'}">
+                            ${profile.relation === 'أنا' ? 'أ' : profile.relation.charAt(0)}
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-sm ${isActive ? 'text-gray-900' : 'text-gray-600'}">${profile.name}</div>
+                            <div class="text-xs ${isActive ? 'text-green-600' : 'text-gray-400'} flex items-center gap-1">
+                                ${hasPrescription ? '<i class="ph-fill ph-check-circle"></i> وصفة نشطة' : 'لا يوجد وصفات'}
+                            </div>
+                        </div>
+                    </button>
+                `;
+            }
+            list.innerHTML = html;
+        }
+
+        function switchProfile(key) {
+            currentProfileId = key;
+            renderBeneficiaries();
+            renderPrescription();
+        }
+
+        function renderPrescription() {
+            const container = document.getElementById('prescription-container');
+            const profile = profiles[currentProfileId];
+            
+            // Update Headers
+            const nameEl = document.getElementById('current-patient-name');
+            if(nameEl) nameEl.innerText = profile.name;
+            const statusText = document.getElementById('status-text');
+            
+            if (profile.prescription) {
+                if(statusText) statusText.innerHTML = `<span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span> وصفة نشطة جاهزة للصرف`;
+                const p = profile.prescription;
+                
+                container.innerHTML = `
+                    <div class="bg-white rounded-[2rem] p-6 md:p-8 shadow-float border-2 border-transparent hover:border-pharma-primary transition-colors mb-8 relative overflow-hidden group slide-up">
+                        <div class="absolute top-0 left-0 w-2 h-full bg-pharma-primary"></div>
+                        <div class="hidden md:block absolute top-6 left-6 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg font-bold text-sm border border-blue-100">${p.clinic}</div>
+                        
+                        <div class="flex flex-col md:flex-row gap-6 md:gap-10 items-center md:items-start">
+                            <div class="w-24 h-24 md:w-32 md:h-32 bg-green-50 rounded-2xl md:rounded-[2rem] flex items-center justify-center text-pharma-primary text-5xl md:text-7xl flex-shrink-0 shadow-inner">
+                                <i class="ph-duotone ph-prescription"></i>
+                            </div>
+                            <div class="flex-1 text-center md:text-right w-full">
+                                <div class="md:hidden bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-bold text-xs border border-blue-100 inline-block mb-3">${p.clinic}</div>
+                                <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">وصفة طبية ${p.id}</h3>
+                                <p class="text-lg md:text-xl text-gray-500 mb-4 flex items-center justify-center md:justify-start gap-2"><i class="ph-fill ph-stethoscope"></i> ${p.doctor}</p>
+                                
+                                <div class="flex flex-col md:flex-row flex-wrap gap-2 justify-center md:justify-start">
+                                    ${p.meds.map(m => `
+                                        <span class="bg-gray-100 text-gray-800 px-4 py-2 rounded-xl font-bold text-sm md:text-lg border border-gray-200 flex items-center justify-center gap-2">
+                                            <i class="ph-fill ${m.icon} ${m.color}"></i> ${m.name}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col gap-4 w-full md:min-w-[240px] mt-4 md:mt-0">
+                                <button onclick="confirmDispense()" class="k-btn bg-pharma-primary text-white text-2xl md:text-3xl font-bold py-4 md:py-6 px-8 rounded-2xl shadow-btn hover:bg-pharma-primaryDark flex items-center justify-center gap-4 w-full">
+                                    <i class="ph-bold ph-check-circle"></i> صرف الآن
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                if(statusText) statusText.innerHTML = `<span class="w-3 h-3 bg-gray-300 rounded-full"></span> لا توجد وصفات نشطة`;
+                container.innerHTML = `
+                    <div class="bg-white rounded-[2rem] p-12 shadow-sm border-2 border-dashed border-gray-200 mb-8 text-center text-gray-400 slide-up">
+                        <i class="ph-duotone ph-prescription text-6xl mb-4 opacity-50 block mx-auto"></i>
+                        <p class="text-xl">لا توجد وصفات طبية نشطة لهذا الملف حالياً.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Selection Logic
+        function toggleSelection(btn) {
+            const check = btn.querySelector('.selection-check');
+            if (check.classList.contains('bg-white')) {
+                check.classList.remove('bg-white', 'border-gray-300', 'text-white');
+                check.classList.add('bg-pharma-primary', 'border-transparent', 'text-white');
+                btn.classList.add('border-pharma-primary', 'bg-green-50');
+                btn.classList.remove('border-transparent', 'bg-white');
+            } else {
+                check.classList.add('bg-white', 'border-gray-300', 'text-white');
+                check.classList.remove('bg-pharma-primary', 'border-transparent', 'text-white');
+                btn.classList.remove('border-pharma-primary', 'bg-green-50');
+                btn.classList.add('border-transparent', 'bg-white');
+            }
+        }
+
+        function confirmDispense() {
+            showScreen('screen-success');
+            let count = 10;
+            const fill = document.querySelector('.progress-fill');
+            const text = document.getElementById('countdown');
+            const interval = setInterval(() => {
+                count--;
+                if(text) text.innerText = count;
+                if(fill) fill.style.width = (count * 10) + '%';
+                if (count <= 0) {
+                    clearInterval(interval);
+                    resetApp();
+                }
+            }, 1000);
+        }
+
+        function resetApp() {
+            showScreen('screen-idle');
+        }
+
+        function triggerSOS() {
+            document.getElementById('sos-popup').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('sos-popup').classList.add('hidden');
+            }, 5000);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = msg;
+            t.classList.remove('opacity-0', 'translate-y-[-20px]');
+            setTimeout(() => {
+                t.classList.add('opacity-0', 'translate-y-[-20px]');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
