@@ -131,6 +131,22 @@
             color: var(--text-secondary);
             font-weight: 500;
         }
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .mic-icon {
+            color: var(--accent-color);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            transition: background 0.2s;
+        }
+        .mic-icon:active { background: rgba(255,255,255,0.3); }
+
         .time { color: var(--text-primary); }
 
         /* Scroll Container */
@@ -251,6 +267,64 @@
         .btn-primary { background: var(--accent-color); color: black; }
         .btn-secondary { background: rgba(255,255,255,0.15); color: white; }
         .btn-danger { background: var(--danger-color); color: white; }
+        
+        /* Recording Specific Styles */
+        .recording-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 20px;
+        }
+        .waveform {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            height: 40px;
+        }
+        .wave-bar {
+            width: 4px;
+            background: var(--danger-color);
+            border-radius: 2px;
+            animation: wave 1s infinite ease-in-out;
+        }
+        .wave-bar:nth-child(odd) { animation-duration: 0.8s; }
+        .wave-bar:nth-child(2n) { animation-duration: 1.1s; }
+        .wave-bar:nth-child(3n) { animation-duration: 1.3s; }
+        .paused .wave-bar { animation-play-state: paused; height: 4px !important; }
+
+        @keyframes wave {
+            0%, 100% { height: 10px; opacity: 0.5; }
+            50% { height: 35px; opacity: 1; }
+        }
+
+        .timer-big {
+            font-size: 40px;
+            font-weight: 300;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .rec-controls {
+            display: flex;
+            gap: 16px;
+            margin-top: 10px;
+        }
+        .rec-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .rec-btn:active { transform: scale(0.9); }
+        .btn-pause { background: rgba(255,255,255,0.2); color: white; }
+        .btn-stop { background: var(--danger-color); color: white; }
 
         .dismiss-btn {
             position: absolute;
@@ -324,7 +398,10 @@
             <!-- Status Bar -->
             <div class="status-bar">
                 <span>صحتنا</span>
-                <span class="time" id="clock">10:09</span>
+                <div class="status-left">
+                    <i class="ph-bold ph-microphone mic-icon" onclick="openRecording()" title="تسجيل صوتي"></i>
+                    <span class="time" id="clock">10:09</span>
+                </div>
             </div>
 
             <!-- Main App Container -->
@@ -371,7 +448,7 @@
                     <div class="notif-content">
                         <div class="notif-title">نفاذ المخزون</div>
                         <div class="notif-subtitle">Metformin شارف على الانتهاء</div>
-                        <span class="notif-time">متبقي 3 حبات</span>
+                        <span class="notif-time">يكفي يوم واحد</span>
                     </div>
                 </div>
 
@@ -414,7 +491,7 @@
     <!-- Instructions -->
     <div style="position: absolute; bottom: 20px; text-align: center; color: #666; font-size: 14px;">
         <p>محاكاة Apple Watch Ultra</p>
-        <p>انقر على التاج (Crown) للعودة للرئيسية • الزر البرتقالي للطوارئ</p>
+        <p>انقر على الميكروفون للتسجيل • الزر البرتقالي للطوارئ</p>
     </div>
 
     <script>
@@ -428,38 +505,43 @@
         setInterval(updateTime, 1000);
         updateTime();
 
+        // Recording Logic Variables
+        let recInterval;
+        let recSeconds = 0;
+        let isPaused = false;
+
         // Data for Alerts
         const alertsData = {
             'med-take': {
                 icon: 'ph-pill', color: '#34C759', title: 'وقت الدواء',
                 desc: 'حان موعد أخذ <b>بنادول إكسترا 500mg</b> (حبتين).',
                 actions: [
-                    { text: 'تأكيد الأخذ', class: 'btn-primary', action: 'showToast("تم تسجيل الجرعة")' },
-                    { text: 'تخطي', class: 'btn-secondary', action: 'showToast("تم تخطي الجرعة")' },
-                    { text: 'تذكير لاحقاً', class: 'btn-secondary', action: 'showToast("سيتم التذكير بعد 10د")' }
+                    { text: 'تأكيد الأخذ', class: 'btn-primary', action: "showToast('خطوة قريبة نحو صحة أفضل')" },
+                    { text: 'تذكير لاحقاً', class: 'btn-secondary', action: "showToast('نلتقي بعد قليل', 'warning')" },
+                    { text: 'تخطي', class: 'btn-secondary', action: 'closeAlert()' }
                 ]
             },
             'med-missed': {
                 icon: 'ph-warning', color: '#FF3B30', title: 'تحذير طبي',
                 desc: 'الوالد (عبدالله) لم يؤكد أخذ دواء الضغط المستحق منذ 30 دقيقة.',
                 actions: [
-                    { text: 'اتصال بالمريض', class: 'btn-primary', action: 'showToast("جاري الاتصال...")' },
-                    { text: 'أخذ نيابة عنه', class: 'btn-secondary', action: 'showToast("تم تسجيل الجرعة عن المريض")' }
+                    { text: 'اتصال بالمريض', class: 'btn-primary', action: "showToast('جاري الاتصال...')" },
+                    { text: 'أخذ نيابة عنه', class: 'btn-secondary', action: "showToast('تم تسجيل الجرعة عن المريض')" }
                 ]
             },
             'sand-req': {
                 icon: 'ph-users', color: '#AF52DE', title: 'طلب مساندة',
                 desc: 'موعد الوالد في <b>مستشفى الحرس</b> غداً يحتاج إلى مرافق.',
                 actions: [
-                    { text: 'أنا سأرافقه', class: 'btn-primary', action: 'showToast("تم تسجيلك كمرافق")' },
-                    { text: 'اعتذار', class: 'btn-secondary', action: 'showToast("تم إرسال الاعتذار")' }
+                    { text: 'أنا سأرافقه', class: 'btn-primary', action: "showToast('تم تسجيلك كمرافق')" },
+                    { text: 'اعتذار', class: 'btn-secondary', action: "showToast('تم إرسال الاعتذار')" }
                 ]
             },
             'low-stock': {
                 icon: 'ph-package', color: '#FF9500', title: 'نفاذ المخزون',
                 desc: 'دواء Metformin للوالد شارف على الانتهاء. المتبقي يكفي ليوم واحد.',
                 actions: [
-                    { text: 'إضافة لقائمة الشراء', class: 'btn-primary', action: 'showToast("تمت الإضافة للقائمة")' },
+                    { text: 'إضافة لقائمة الشراء', class: 'btn-primary', action: "showToast('تمت الإضافة للقائمة')" },
                     { text: 'تجاهل', class: 'btn-secondary', action: 'closeAlert()' }
                 ]
             },
@@ -467,15 +549,15 @@
                 icon: 'ph-car', color: '#0A84FF', title: 'موعد قريب',
                 desc: 'موعد الأسنان في عيادات الماسة يبدأ خلال ساعة. الطريق يستغرق 20 دقيقة.',
                 actions: [
-                    { text: 'فتح الخرائط', class: 'btn-primary', action: 'showToast("فتح Google Maps...")' },
-                    { text: 'تفاصيل الموعد', class: 'btn-secondary', action: 'closeAlert()' }
+                    { text: 'فتح الخرائط', class: 'btn-primary', action: "showToast('فتح Google Maps...')" },
+                    { text: 'تفاصيل الموعد', class: 'btn-secondary', action: 'showAppointmentDetails()', keepOpen: true }
                 ]
             },
             'post-visit': {
                 icon: 'ph-clipboard-text', color: '#FF9500', title: 'متابعة زيارة',
                 desc: 'انتهى موعد العيون. هل صرف الطبيب أدوية جديدة؟',
                 actions: [
-                    { text: 'نعم، إضافة دواء', class: 'btn-primary', action: 'showToast("فتح نموذج الإضافة على الجوال")' },
+                    { text: 'نعم، إضافة دواء', class: 'btn-primary', action: "showToast('فتح نموذج الإضافة على الجوال')" },
                     { text: 'لا، تحديث الحالة', class: 'btn-secondary', action: 'closeAlert()' }
                 ]
             }
@@ -497,7 +579,7 @@
                 </div>
                 <div class="fa-actions">
                     ${data.actions.map(btn => `
-                        <button class="watch-btn ${btn.class}" onclick="${btn.action}; setTimeout(closeAlert, 500)">
+                        <button class="watch-btn ${btn.class}" onclick="${btn.action}; ${btn.keepOpen ? '' : 'setTimeout(closeAlert, 500)'}">
                             ${btn.text}
                         </button>
                     `).join('')}
@@ -507,11 +589,181 @@
             view.classList.add('active');
         }
 
+        // Modified showToast to accept type
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            const icon = t.querySelector('.toast-icon');
+            const msgEl = document.getElementById('toast-msg');
+            
+            msgEl.innerText = msg;
+            
+            // Icon handling
+            icon.className = 'ph-fill toast-icon'; // Reset
+            icon.style.color = ''; // Reset inline color
+
+            if (type === 'warning') {
+                icon.classList.add('ph-clock');
+                icon.style.color = 'var(--warning-color)';
+            } else {
+                icon.classList.add('ph-check-circle');
+                icon.style.color = 'var(--accent-color)';
+            }
+
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function showAppointmentDetails() {
+            const view = document.getElementById('alert-view');
+            view.innerHTML = `
+                <div style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+                    <!-- Nav Bar -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px;">
+                        <div onclick="closeAlert()" style="display: flex; align-items: center; gap: 4px; color: var(--accent-color); cursor: pointer;">
+                            <i class="ph-bold ph-caret-right"></i>
+                            <span style="font-size: 14px;">عودة</span>
+                        </div>
+                        <span style="font-size: 15px; font-weight: 600;">الموعد</span>
+                        <div style="width: 40px;"></div> <!-- Spacer -->
+                    </div>
+
+                    <!-- Content (Compact & No Scroll) -->
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 8px; overflow: hidden;">
+                        
+                        <!-- Header -->
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                            <div style="width: 36px; height: 36px; background: rgba(10, 132, 255, 0.2); color: #0A84FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="ph-fill ph-hospital" style="font-size: 18px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 15px; font-weight: 700; line-height: 1.2;">مستشفى الحرس</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">العيادات الخارجية</div>
+                            </div>
+                        </div>
+
+                        <!-- Info Group -->
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 0 10px; display: flex; flex-direction: column;">
+                            
+                            <!-- Row 1 -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <span style="color: var(--text-secondary); font-size: 13px;">العيادة</span>
+                                <span style="font-size: 13px; font-weight: 500;">الماسة (أسنان)</span>
+                            </div>
+
+                            <!-- Row 2 -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <span style="color: var(--text-secondary); font-size: 13px;">الوقت</span>
+                                <span style="font-size: 13px; font-weight: 500;">11:30 ص - اليوم</span>
+                            </div>
+
+                            <!-- Row 3 -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
+                                <span style="color: var(--text-secondary); font-size: 13px;">الطبيب</span>
+                                <span style="font-size: 13px; font-weight: 500;">د. محمد الفهد</span>
+                            </div>
+                        </div>
+
+                        <!-- Note -->
+                         <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; display: flex; align-items: center; gap: 8px;">
+                            <i class="ph-fill ph-info" style="color: var(--warning-color); font-size: 16px;"></i>
+                            <div style="font-size: 12px; line-height: 1.3;">يرجى الحضور قبل الموعد بـ 15 دقيقة</div>
+                        </div>
+
+                    </div>
+                </div>
+            `;
+            view.classList.add('active');
+        }
+
+        // Recording Functions
+        function openRecording() {
+            const view = document.getElementById('alert-view');
+            recSeconds = 0;
+            isPaused = false;
+            
+            view.innerHTML = `
+                <div class="dismiss-btn" onclick="cancelRecording()"><i class="ph-bold ph-x"></i></div>
+                <div class="recording-container">
+                    <div style="color: var(--danger-color); font-weight: 600;">جاري التسجيل...</div>
+                    <div class="waveform" id="waveform">
+                        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                    </div>
+                    <div class="timer-big" id="rec-timer">00:00</div>
+                    <div class="rec-controls">
+                        <button class="rec-btn btn-pause" onclick="togglePause()" id="pause-btn">
+                            <i class="ph-fill ph-pause"></i>
+                        </button>
+                        <button class="rec-btn btn-stop" onclick="finishRecording()">
+                            <i class="ph-fill ph-stop"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            view.classList.add('active');
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(recInterval);
+            recInterval = setInterval(() => {
+                if(!isPaused) {
+                    recSeconds++;
+                    const m = Math.floor(recSeconds / 60).toString().padStart(2, '0');
+                    const s = (recSeconds % 60).toString().padStart(2, '0');
+                    const timerEl = document.getElementById('rec-timer');
+                    if(timerEl) timerEl.innerText = `${m}:${s}`;
+                }
+            }, 1000);
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const wave = document.getElementById('waveform');
+            const btn = document.getElementById('pause-btn');
+            
+            if(isPaused) {
+                wave.classList.add('paused');
+                btn.innerHTML = '<i class="ph-fill ph-play"></i>';
+                btn.style.background = 'var(--accent-color)';
+                btn.style.color = 'black';
+            } else {
+                wave.classList.remove('paused');
+                btn.innerHTML = '<i class="ph-fill ph-pause"></i>';
+                btn.style.background = 'rgba(255,255,255,0.2)';
+                btn.style.color = 'white';
+            }
+        }
+
+        function finishRecording() {
+            clearInterval(recInterval);
+            const view = document.getElementById('alert-view');
+            // Show uploading state
+            view.innerHTML = `
+                <div class="recording-container">
+                    <i class="ph-bold ph-cloud-arrow-up" style="font-size: 40px; color: var(--info-color);"></i>
+                    <div>جاري الرفع...</div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                closeAlert();
+                showToast("تم الحفظ في المستندات: موعد عيادات الماسة (أسنان)");
+            }, 2000);
+        }
+
+        function cancelRecording() {
+            clearInterval(recInterval);
+            closeAlert();
+        }
+
         function closeAlert() {
             document.getElementById('alert-view').classList.remove('active');
         }
 
         function goHome() {
+            cancelRecording();
             closeAlert();
             document.getElementById('main-view').scrollTop = 0;
         }
