@@ -161,8 +161,10 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-stretch h-20">
                 <!-- Logos -->
-                <div class="flex-shrink-0 flex items-center gap-4 cursor-pointer" onclick="navigate('dashboard')">
-                    <div class="text-saudi-green w-10 h-10 flex items-center justify-center"><i class="ph-fill ph-palm-tree icon-xl"></i></div>
+                <div class="flex-shrink-0 flex items-center gap-3 cursor-pointer" onclick="navigate('dashboard')">
+                    <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center text-saudi-green border border-green-100">
+                        <i class="ph-fill ph-heartbeat text-3xl"></i>
+                    </div>
                     <div class="flex flex-col"><span class="text-lg font-bold text-gray-900 leading-tight">منصة صحتنا</span></div>
                 </div>
 
@@ -224,7 +226,9 @@
                  <!-- Right Side: Logo & Desc -->
                  <div class="text-center md:text-right">
                     <div class="flex items-center justify-center md:justify-start gap-3 mb-3">
-                        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#004D26]"><i class="ph-fill ph-palm-tree text-2xl"></i></div>
+                        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#004D26]">
+                            <i class="ph-fill ph-heartbeat text-2xl"></i>
+                        </div>
                         <h3 class="text-2xl font-bold">منصة صحتنا</h3>
                     </div>
                     <p class="text-sm text-gray-300 max-w-xs mx-auto md:mx-0 leading-relaxed">المنصة الوطنية الموحدة للرعاية الصحية، تمكنك من إدارة ملفك الصحي وملفات أفراد أسرتك بكل يسر وسهولة.</p>
@@ -282,15 +286,15 @@
     <script>
         // --- State Management ---
         const DEFAULT_STATE = {
-            currentUser: "سارة", // Changed Owner
-            currentProfile: "primary", // Default to Self
+            currentUser: "سارة", 
+            currentProfile: "primary", 
             appointmentFilter: "upcoming",
             medicationFilter: "all",
             appointmentPatientFilter: "all",
             documentFilter: "all",
             documentSort: "newest",
             profiles: {
-                primary: { // Sarah is now Primary
+                primary: { 
                     id: 'primary', type: 'self', name: "سارة (أنا)", color: "bg-pink-600", gender: 'female',
                     relation: "أنا", conditions: ["حساسية"],
                     supporters: [
@@ -318,7 +322,8 @@
                 },
                 proxy1: {
                     id: 'proxy1', type: 'proxy', name: "الوالد (عبدالله)", color: "bg-blue-600", gender: 'male',
-                    relation: "الوالد", conditions: ["السكري", "الضغط", "العيون"],
+                    relation: "الوالد", role: "sanad", // تم التعديل إلى مساند
+                    conditions: ["السكري", "الضغط", "العيون"],
                     meds: [
                         { 
                             id: 101, name: "Metformin", type: "حبوب", dose: "850mg", 
@@ -341,9 +346,10 @@
                         { id: 101, title: "تقرير أشعة الصدر", type: "report", date: "2023-12-05", file: "xray.jpg", desc: "متابعة حالة الربو" }
                     ]
                 },
-                proxy_ahmed: { // Ahmed moved to Proxy
+                proxy_ahmed: {
                     id: 'proxy_ahmed', type: 'proxy', name: "أحمد (الأخ)", color: "bg-saudi-green", gender: 'male',
-                    relation: "أخ", conditions: ["الضغط"],
+                    relation: "أخ", role: "sanad", // تم التعديل إلى مساند (افتراضياً للأخوة)
+                    conditions: ["الضغط"],
                     meds: [
                          { 
                              id: 1, name: "بنادول إكسترا", type: "حبوب", dose: "500mg", 
@@ -363,9 +369,10 @@
                         { id: 1, title: "تحليل دم شامل", type: "lab", date: "2023-11-10", file: "report.pdf", desc: "فحص دوري سنوي" }
                     ]
                 },
-                proxy_mother: { // Added Mother
-                    id: 'proxy_mother', type: 'proxy', name: "نورة (الوالدة)", color: "bg-pink-500", gender: 'female', // Changed Color
-                    relation: "الوالدة", conditions: ["ضغط", "هشاشة عظام"],
+                proxy_mother: {
+                    id: 'proxy_mother', type: 'proxy', name: "نورة (الوالدة)", color: "bg-pink-500", gender: 'female', 
+                    relation: "الوالدة", role: "sanad", // تم التعديل إلى مساند
+                    conditions: ["ضغط", "هشاشة عظام"],
                     meds: [
                         { 
                             id: 301, name: "Calcium + Vit D", type: "حبوب", dose: "600mg", 
@@ -382,6 +389,30 @@
                          { id: 302, hospital: "مركز السكري", clinic: "التثقيف الصحي", doctor: "أ. ليلى", spec: "تثقيف", date: "2026-01-25", time: "10:00", sand: "سارة (أنا)", condition: "حمية غذائية", done: false }
                     ],
                     documents: []
+                },
+                proxy_laila: { // Added Laila with Supporters
+                    id: 'proxy_laila', type: 'proxy', name: "ليلى (الابنة)", color: "bg-pink-400", gender: 'female', // تم تغيير اللون هنا
+                    relation: "ابنة", role: "wakeel", // ابنة قاصر (وكيل)
+                    conditions: ["تطعيمات", "ربو بسيط"],
+                    supporters: [
+                        { id: 101, name: "نورة (الجدة)", relation: "جدة", access: ["المواعيد", "الأدوية"] },
+                        { id: 999, name: "سارة (الأم)", relation: "أم / وكيل", access: ["صلاحية كاملة"] }
+                    ],
+                    meds: [
+                        { 
+                            id: 401, name: "خافض حرارة (فيفادول)", type: "شراب", dose: "5ml", 
+                            freqType: "prn", freq: "عند اللزوم", times: [], 
+                            duration: "عند الحاجة", days: ["يومياً"],
+                            stock: 1, totalStock: 1, taken: false, warning: false,
+                            history: [],
+                            missedInstruction: "لا تتجاوز 4 جرعات يومياً",
+                            image: null
+                        }
+                    ],
+                    appointments: [
+                         { id: 401, hospital: "مركز صحي الحي", clinic: "الطفل السليم", doctor: "د. هدى", spec: "أطفال", date: "2026-02-20", time: "09:00", sand: "سارة (أنا)", condition: "تطعيم 4 سنوات", done: false }
+                    ],
+                    documents: []
                 }
             }
         };
@@ -389,11 +420,11 @@
         let state = {};
 
         function loadState() {
-            const stored = localStorage.getItem('sehatuna_state_v15_mother_color'); // Version bump for Mother Color
+            const stored = localStorage.getItem('sehatuna_state_v19_laila_pink'); // Version bump for Laila Color
             if (stored) state = JSON.parse(stored);
             else { state = JSON.parse(JSON.stringify(DEFAULT_STATE)); saveState(); }
         }
-        function saveState() { localStorage.setItem('sehatuna_state_v15_mother_color', JSON.stringify(state)); renderProfileDropdown(); updateHeader(); }
+        function saveState() { localStorage.setItem('sehatuna_state_v19_laila_pink', JSON.stringify(state)); renderProfileDropdown(); updateHeader(); }
 
         document.addEventListener('DOMContentLoaded', () => {
             loadState(); navigate('dashboard'); updateHeader(); renderProfileDropdown(); renderNotifications();
@@ -427,7 +458,11 @@
                 const themeClass = profile.gender === 'female' ? 'bg-pink-50 border-pink-500 text-pink-600' : 'bg-amber-50 border-amber-500 text-amber-600';
                 const iconBg = profile.gender === 'female' ? 'bg-pink-100 text-pink-600' : 'bg-amber-100 text-amber-600';
                 
-                const profileHeader = isProxy ? `<div class="${themeClass} border-r-4 p-4 rounded-lg shadow-sm mb-6 flex justify-between animate-pulse"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full ${iconBg} flex items-center justify-center"><i class="ph-fill ph-user-switch icon-std"></i></div><div><h3 class="font-bold text-gray-900">أنت تتصفح ملف: ${state.profiles[state.currentProfile].name}</h3><p class="text-xs text-gray-600">وضع الوكيل</p></div></div><button onclick="switchProfile('primary')" class="text-xs font-bold bg-white/50 px-3 py-1.5 rounded border border-black/5 hover:bg-white transition">العودة</button></div>` : '';
+                // Determine Role Text (Sanad or Wakeel)
+                const roleText = profile.role === 'sanad' ? 'وضع المساند (صلاحيات مخصصة)' : 'وضع الوكيل (صلاحية كاملة)';
+                const roleIcon = profile.role === 'sanad' ? 'ph-hand-heart' : 'ph-user-switch';
+
+                const profileHeader = isProxy ? `<div class="${themeClass} border-r-4 p-4 rounded-lg shadow-sm mb-6 flex justify-between animate-pulse"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full ${iconBg} flex items-center justify-center"><i class="ph-fill ${roleIcon} icon-std"></i></div><div><h3 class="font-bold text-gray-900">أنت تتصفح ملف: ${state.profiles[state.currentProfile].name}</h3><p class="text-xs text-gray-600">${roleText}</p></div></div><button onclick="switchProfile('primary')" class="text-xs font-bold bg-white/50 px-3 py-1.5 rounded border border-black/5 hover:bg-white transition">العودة</button></div>` : '';
 
                 switch(viewId) {
                     case 'dashboard': html = profileHeader + renderDashboard(); break;
@@ -474,18 +509,25 @@
         }
 
         function renderSandsPage() {
-            const peopleISupport = Object.values(state.profiles).filter(p => p.type === 'proxy');
-            const mySupporters = state.profiles.primary.supporters || [];
-            const myRequests = state.profiles.primary.supporterRequests || [];
+            const isPrimary = state.currentProfile === 'primary';
+            const currentProfileObj = state.profiles[state.currentProfile];
+            
+            // Only primary user 'supports' people in this context (proxies)
+            const peopleISupport = isPrimary ? Object.values(state.profiles).filter(p => p.type === 'proxy') : [];
+            
+            // Supporters list depends on who we are viewing
+            const mySupporters = currentProfileObj.supporters || [];
+            const myRequests = isPrimary ? (currentProfileObj.supporterRequests || []) : [];
 
             return `
                 <div class="fade-in max-w-7xl mx-auto space-y-12">
+                    ${isPrimary ? `
                     <!-- Section 1: People I Support -->
                     <section>
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-2xl font-bold text-gray-800 border-r-4 border-saudi-green pr-4">أشخاص أساندهم (رعايتي)</h2>
                             <button onclick="openModal('add-patient')" class="bg-saudi-green text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-green-800 transition">
-                                <i class="ph-bold ph-user-plus"></i> إضافة متابع
+                                <i class="ph-bold ph-user-plus"></i> إضافة مريض
                             </button>
                         </div>
                         
@@ -495,12 +537,14 @@
                                 ${peopleISupport.map(person => renderPersonISupportCard(person)).join('')}
                             </div>`
                         }
-                    </section>
+                    </section>` : ''}
 
-                    <!-- Section 2: My Supporters -->
+                    <!-- Section 2: Supporters -->
                     <section>
                         <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-2xl font-bold text-gray-800 border-r-4 border-blue-600 pr-4">فريق مساندتي</h2>
+                            <h2 class="text-2xl font-bold text-gray-800 border-r-4 border-blue-600 pr-4">
+                                ${isPrimary ? 'فريق مساندتي' : `فريق مساندة ${currentProfileObj.name}`}
+                            </h2>
                             <button onclick="openModal('add-supporter')" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-gray-50 transition">
                                 <i class="ph-bold ph-users-three"></i> دعوة مساند
                             </button>
@@ -533,7 +577,9 @@
                         ` : ''}
 
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            ${mySupporters.map(supporter => `
+                            ${mySupporters.length === 0 ? 
+                                `<div class="col-span-full text-center py-8 text-gray-400 border border-dashed rounded-xl">لا يوجد مساندين لهذا الملف</div>` :
+                                mySupporters.map(supporter => `
                                 <div class="service-card relative">
                                     <div class="flex items-start justify-between mb-4">
                                         <div class="flex items-center gap-3">
@@ -543,7 +589,7 @@
                                                 <p class="text-sm text-gray-500">${supporter.relation}</p>
                                             </div>
                                         </div>
-                                        <button class="text-gray-400 hover:text-gray-600"><i class="ph-bold ph-dots-three-vertical text-xl"></i></button>
+                                        ${isPrimary ? `<button class="text-gray-400 hover:text-gray-600"><i class="ph-bold ph-dots-three-vertical text-xl"></i></button>` : ''}
                                     </div>
                                     <div class="mb-4">
                                         <p class="text-xs text-gray-400 mb-2">صلاحيات الوصول:</p>
@@ -551,10 +597,11 @@
                                             ${supporter.access.map(tag => `<span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-[10px] border border-gray-200">${tag}</span>`).join('')}
                                         </div>
                                     </div>
+                                    ${isPrimary ? `
                                     <div class="flex gap-2 mt-auto pt-4 border-t border-gray-100">
                                         <button onclick="openModal('edit-permissions', ${supporter.id})" class="flex-1 text-xs font-bold text-gray-600 py-2 hover:bg-gray-50 rounded bg-white border border-gray-200">تعديل الصلاحيات</button>
                                         <button onclick="deleteSupporter(${supporter.id})" class="px-3 text-red-500 hover:bg-red-50 rounded border border-red-100"><i class="ph-bold ph-trash"></i></button>
-                                    </div>
+                                    </div>` : ''}
                                 </div>
                             `).join('')}
                         </div>
@@ -580,6 +627,10 @@
                 if (a.sand === 'مطلوب مرافق' && !a.done) alerts.push({icon: 'ph-users', text: `موعد يحتاج مرافق`, color: 'text-amber-600'});
             });
 
+            const roleBadge = person.role === 'sanad' 
+                ? `<span class="bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded border border-blue-100">مساند</span>` 
+                : `<span class="bg-purple-50 text-purple-700 text-[10px] px-2 py-0.5 rounded border border-purple-100">وكيل شرعي</span>`;
+
             return `
                 <div class="service-card group border-t-4 ${isFemale ? 'female-theme' : 'male-theme'} cursor-pointer" onclick="switchProfile('${person.id}')">
                     <div class="flex justify-between items-start mb-4">
@@ -589,7 +640,7 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-lg text-gray-900">${person.name}</h3>
-                                <p class="text-sm text-gray-500">${person.relation}</p>
+                                <p class="text-sm text-gray-500 flex items-center gap-2">${person.relation} ${roleBadge}</p>
                             </div>
                         </div>
                         <i class="ph-bold ph-arrow-left text-gray-300 group-hover:text-saudi-green transition-colors"></i>
@@ -767,7 +818,7 @@
             } else if (type === 'add-patient') {
                 content.innerHTML = `
                     <div class="p-6">
-                        <h3 class="font-bold text-xl mb-4 text-saudi-green">إضافة متابع جديد</h3>
+                        <h3 class="font-bold text-xl mb-4 text-saudi-green">إضافة مريض جديد</h3>
                         <div class="flex gap-2 mb-4 bg-gray-100 p-1 rounded-lg">
                             <button onclick="document.getElementById('link-form').classList.remove('hidden'); document.getElementById('create-form').classList.add('hidden');" class="flex-1 py-2 rounded bg-white shadow text-sm font-bold">ربط حساب</button>
                             <button onclick="document.getElementById('create-form').classList.remove('hidden'); document.getElementById('link-form').classList.add('hidden');" class="flex-1 py-2 rounded text-gray-500 text-sm font-bold">إنشاء ملف (وكيل)</button>
@@ -955,11 +1006,11 @@
                     <div class="w-10 h-10 rounded-full ${p.color} text-white flex items-center justify-center font-bold shadow-sm">${p.name.charAt(0)}</div>
                     <div>
                         <p class="font-bold text-gray-800 text-sm">${p.name}</p>
-                        <p class="text-xs text-gray-500">${p.relation}</p>
+                        <p class="text-xs text-gray-500">${p.relation} ${p.role === 'sanad' ? '(مساند)' : ''}</p>
                     </div>
                     ${state.currentProfile === p.id ? '<i class="ph-fill ph-check-circle text-saudi-green mr-auto"></i>' : ''}
                 </button>
-            `).join('') + `<div class="border-t border-gray-100 mt-2 pt-2"><button onclick="openModal('add-patient')" class="w-full text-right flex items-center gap-2 p-2 text-sm font-bold text-saudi-green hover:bg-green-50 rounded-lg"><i class="ph-bold ph-plus"></i> إضافة تابع جديد</button></div>`;
+            `).join('') + `<div class="border-t border-gray-100 mt-2 pt-2"><button onclick="openModal('add-patient')" class="w-full text-right flex items-center gap-2 p-2 text-sm font-bold text-saudi-green hover:bg-green-50 rounded-lg"><i class="ph-bold ph-plus"></i> إضافة مريض جديد</button></div>`;
         }
 
         function updateHeader() {
