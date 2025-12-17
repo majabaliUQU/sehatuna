@@ -183,8 +183,14 @@
             
             <div class="w-full max-w-md">
                 <!-- Display -->
-                <div id="id-display" class="bg-white border-2 border-gray-200 rounded-2xl h-20 mb-8 flex items-center justify-center text-4xl font-mono tracking-widest text-gray-700 shadow-inner">
+                <!-- Modified: Added whitespace-nowrap to keep in one line, changed margin bottom to fit error msg -->
+                <div id="id-display" class="bg-white border-2 border-gray-200 rounded-2xl h-20 mb-2 flex items-center justify-center text-4xl font-mono tracking-widest text-gray-700 shadow-inner whitespace-nowrap overflow-hidden transition-colors duration-300">
                     <!-- Numbers appear here -->
+                </div>
+
+                <!-- NEW: Error Message Area -->
+                <div id="id-error" class="h-8 text-red-500 font-bold text-lg text-center mb-6 opacity-0 transition-opacity duration-200">
+                    <!-- Error text will appear here -->
                 </div>
 
                 <!-- Keypad -->
@@ -330,27 +336,66 @@
         function goToIDInput() {
             showScreen('screen-id-input');
             currentID = "";
+            // Reset error state on load
+            const errEl = document.getElementById('id-error');
+            const display = document.getElementById('id-display');
+            if(errEl) errEl.style.opacity = '0';
+            if(display) display.classList.remove('border-red-500', 'bg-red-50');
         }
+
         function typeNum(num) {
+            // Modified: Strict limit to 10 digits
             if (currentID.length < 10) {
                 currentID += num;
                 updateDisplay();
+                
+                // Clear error when user types
+                const errEl = document.getElementById('id-error');
+                const display = document.getElementById('id-display');
+                if(errEl && errEl.style.opacity === '1') {
+                    errEl.style.opacity = '0';
+                    display.classList.remove('border-red-500', 'bg-red-50');
+                }
             }
         }
+
         function clearNum() {
             currentID = "";
             updateDisplay();
+            // Clear error on clear
+            const errEl = document.getElementById('id-error');
+            const display = document.getElementById('id-display');
+            if(errEl) errEl.style.opacity = '0';
+            if(display) display.classList.remove('border-red-500', 'bg-red-50');
         }
+
         function updateDisplay() {
             const display = document.getElementById('id-display');
+            // Modified: Reduced spacing slightly to fit better
             if(display) display.innerText = currentID.split('').join(' ');
         }
+
         function submitID() {
-            if (currentID.length >= 5) { // Simple validation simulation
+            const errEl = document.getElementById('id-error');
+            const display = document.getElementById('id-display');
+
+            // Modified: Strict validation for exactly 10 digits
+            if (currentID.length === 10) { 
                 showScreen('screen-dashboard');
                 startInactivityTimer();
             } else {
-                // Shake effect logic could go here
+                // Show Error
+                if(errEl) {
+                    errEl.innerText = "رقم الهوية يجب أن يتكون من 10 أرقام";
+                    errEl.style.opacity = '1';
+                }
+                if(display) {
+                    display.classList.add('border-red-500', 'bg-red-50');
+                    // Add shake effect (simple CSS logic simulation)
+                    display.style.transform = "translateX(10px)";
+                    setTimeout(() => display.style.transform = "translateX(-10px)", 100);
+                    setTimeout(() => display.style.transform = "translateX(0)", 200);
+                }
             }
         }
 
