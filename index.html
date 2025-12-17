@@ -88,7 +88,7 @@
             left: 0;
             right: 0;
             height: 4px;
-            background-color: #A0CF3D; 
+            background-color: #25935F;
         }
 
         /* Card Styles */
@@ -184,8 +184,8 @@
                     <!-- Profile -->
                     <div class="relative group">
                         <button class="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full py-1.5 px-3 transition-colors">
-                            <div class="w-8 h-8 rounded-full bg-saudi-green text-white flex items-center justify-center font-bold text-sm" id="current-profile-icon">أ</div>
-                            <div class="hidden md:block text-right"><span class="block text-xs font-bold text-gray-700" id="user-greeting-header">أحمد</span></div>
+                            <div class="w-8 h-8 rounded-full bg-saudi-green text-white flex items-center justify-center font-bold text-sm" id="current-profile-icon">س</div>
+                            <div class="hidden md:block text-right"><span class="block text-xs font-bold text-gray-700" id="user-greeting-header">سارة</span></div>
                             <i class="ph ph-caret-down text-gray-400"></i>
                         </button>
                         <div class="absolute left-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-100 hidden group-hover:block p-2 z-50 transform origin-top-left" id="profile-dropdown"></div>
@@ -218,18 +218,45 @@
     </div>
 
     <!-- Footer -->
-    <footer class="bg-saudi-dark text-white pt-12 pb-6 mt-12 border-t border-green-800">
+    <footer class="bg-[#004D26] text-white pt-10 pb-6 mt-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-                <div>
-                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-heartbeat text-saudi-accent"></i> منصة صحتنا</h3>
-                    <p class="text-gray-300 text-sm leading-relaxed">المنصة الوطنية الموحدة للرعاية الصحية التشاركية.</p>
-                </div>
-                <div><h4 class="text-lg font-bold mb-4 text-saudi-accent">روابط مهمة</h4><ul class="space-y-2"><li><a href="#" class="footer-link">عن المنصة</a></li><li><a href="#" class="footer-link">سياسة الخصوصية</a></li></ul></div>
-                <div><h4 class="text-lg font-bold mb-4 text-saudi-accent">تواصل معنا</h4><ul class="space-y-3"><li class="text-sm text-gray-300">19911</li><li class="text-sm text-gray-300">support@sehatuna.gov.sa</li></ul></div>
-                <div><h4 class="text-lg font-bold mb-4 text-saudi-accent">تابعنا</h4><div class="flex gap-4"><i class="ph-fill ph-twitter-logo text-xl"></i><i class="ph-fill ph-linkedin-logo text-xl"></i></div></div>
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
+                 <!-- Right Side: Logo & Desc -->
+                 <div class="text-center md:text-right">
+                    <div class="flex items-center justify-center md:justify-start gap-3 mb-3">
+                        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#004D26]"><i class="ph-fill ph-palm-tree text-2xl"></i></div>
+                        <h3 class="text-2xl font-bold">منصة صحتنا</h3>
+                    </div>
+                    <p class="text-sm text-gray-300 max-w-xs mx-auto md:mx-0 leading-relaxed">المنصة الوطنية الموحدة للرعاية الصحية، تمكنك من إدارة ملفك الصحي وملفات أفراد أسرتك بكل يسر وسهولة.</p>
+                 </div>
+
+                 <!-- Center: Quick Links -->
+                 <div class="flex flex-wrap justify-center gap-6 md:gap-8 text-sm font-medium text-gray-200">
+                     <a href="#" class="hover:text-[#A0CF3D] transition">عن المنصة</a>
+                     <a href="#" class="hover:text-[#A0CF3D] transition">الأسئلة الشائعة</a>
+                     <a href="#" class="hover:text-[#A0CF3D] transition">سياسة الخصوصية</a>
+                     <a href="#" class="hover:text-[#A0CF3D] transition">شروط الاستخدام</a>
+                     <a href="#" class="hover:text-[#A0CF3D] transition">اتصل بنا</a>
+                 </div>
+
+                 <!-- Left Side: Social -->
+                 <div class="flex flex-col items-center md:items-end gap-4">
+                     <div class="flex gap-4">
+                     </div>
+                 </div>
             </div>
-            <div class="border-t border-white/10 pt-6 text-xs text-gray-400 text-center md:text-right">جميع الحقوق محفوظة © 2025</div>
+
+            <!-- تم تعديل لون الخط الفاصل هنا -->
+            <div class="border-t border-[#25935F] pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-xs text-gray-400">جميع الحقوق محفوظة © منصة صحتنا 2026</p>
+                <div class="flex items-center gap-3 opacity-90 hover:opacity-100 transition">
+                    <span class="text-xs text-gray-400">تحقيقاً لـ</span>
+                    <div class="flex items-center gap-1 border border-white/20 rounded px-2 py-1 bg-[#004D26]">
+                        <div class="w-2 h-2 rounded-full bg-[#C6A664]"></div>
+                        <span class="font-bold text-white text-xs">رؤية السعودية 2030</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </footer>
 
@@ -255,41 +282,39 @@
     <script>
         // --- State Management ---
         const DEFAULT_STATE = {
-            currentUser: "أحمد",
-            currentProfile: "primary",
+            currentUser: "سارة", // Changed Owner
+            currentProfile: "primary", // Default to Self
             appointmentFilter: "upcoming",
             medicationFilter: "all",
             appointmentPatientFilter: "all",
             documentFilter: "all",
             documentSort: "newest",
             profiles: {
-                primary: {
-                    id: 'primary', type: 'self', name: "أحمد (أنا)", color: "bg-saudi-green", gender: 'male',
-                    relation: "أنا", conditions: ["الضغط"],
+                primary: { // Sarah is now Primary
+                    id: 'primary', type: 'self', name: "سارة (أنا)", color: "bg-pink-600", gender: 'female',
+                    relation: "أنا", conditions: ["حساسية"],
                     supporters: [
-                        { id: 2, name: "سعيد (الأخ)", relation: "أخ", access: ["السكري", "المواعيد", "المستندات"] },
+                        { id: 2, name: "أحمد (الأخ)", relation: "أخ", access: ["الكل"] },
                         { id: 3, name: "د. خالد", relation: "طبيب الأسرة", access: ["الكل"] }
                     ],
-                    supporterRequests: [
-                        { id: 10, name: "عبدالرحمن (الابن)", relation: "ابن", access: "طلب صلاحية كاملة" }
-                    ],
+                    supporterRequests: [],
                     meds: [
                          { 
-                             id: 1, name: "بنادول إكسترا", type: "حبوب", dose: "500mg", 
-                             freqType: "prn", freq: "عند اللزوم", times: [], duration: "مستمر", 
-                             stock: 20, totalStock: 30, taken: false, 
-                             history: [{date:'2023-12-10', status:'taken'}],
-                             missedInstruction: "يمكن أخذ الجرعة في أي وقت عند الشعور بالألم.",
-                             image: null
-                         }
+                            id: 201, name: "Zyrtec", type: "حبوب", dose: "10mg", 
+                            freqType: "scheduled", freq: "مرة يومياً", times: ["21:00"], 
+                            duration: "عند الحاجة", days: ["يومياً"],
+                            stock: 10, totalStock: 20, taken: false, warning: false,
+                            history: [],
+                            missedInstruction: "خذها وقت التذكر",
+                            image: null
+                        }
                     ],
                     appointments: [
-                        { id: 1, hospital: "عيادات الماسة", clinic: "عيادة الأسنان", doctor: "د. خالد السعيد", spec: "أسنان", date: "2025-01-20", time: "10:00", sand: "لا يوجد", condition: "تنظيف دوري", done: false },
-                        { id: 99, hospital: "مستشفى التخصصي", clinic: "عيادة الباطنية", doctor: "د. فهد", spec: "باطنية", date: "2025-05-15", time: "09:00", sand: "لا يوجد", condition: "فحص دوري", done: false }
+                         { id: 201, hospital: "مستشفى الولادة", clinic: "نساء وولادة", doctor: "د. نورة", spec: "نساء", date: "2026-02-01", time: "11:00", sand: "لا يوجد", condition: "متابعة حمل", done: false },
+                         { id: 202, hospital: "عيادات دلة", clinic: "الأسنان", doctor: "د. محمد", spec: "أسنان", date: "2026-02-15", time: "16:30", sand: "لا يوجد", condition: "تنظيف دوري", done: false },
+                         { id: 203, hospital: "مستشفى الحبيب", clinic: "الجلدية", doctor: "د. سارة", spec: "جلدية", date: "2026-03-02", time: "09:00", sand: "لا يوجد", condition: "استشارة", done: false }
                     ],
-                    documents: [
-                        { id: 1, title: "تحليل دم شامل", type: "lab", date: "2023-11-10", file: "report.pdf", desc: "فحص دوري سنوي" }
-                    ]
+                    documents: []
                 },
                 proxy1: {
                     id: 'proxy1', type: 'proxy', name: "الوالد (عبدالله)", color: "bg-blue-600", gender: 'male',
@@ -306,31 +331,55 @@
                         }
                     ],
                     appointments: [
-                        { id: 101, hospital: "مستشفى الحرس", clinic: "عيادة السكري", doctor: "د. منى الغامدي", spec: "غدد صماء", date: "2025-02-15", time: "09:30", sand: "مطلوب مرافق", condition: "متابعة السكري", instructions: "صيام 12 ساعة", done: false },
-                        { id: 103, hospital: "مركز الأشعة الدولي", clinic: "قسم الأشعة", doctor: "", spec: "أشعة", date: "2025-03-10", time: "16:00", sand: "أنا", condition: "آلام الظهر", done: false },
-                        { id: 104, hospital: "عيادة القلب", clinic: "القلب", doctor: "د. سمير", spec: "قلب", date: "2025-02-20", time: "10:00", sand: "مطلوب مرافق", condition: "مراجعة", done: false },
+                        { id: 101, hospital: "مستشفى الحرس", clinic: "عيادة السكري", doctor: "د. منى الغامدي", spec: "غدد صماء", date: "2026-01-15", time: "09:30", sand: "مطلوب مرافق", condition: "متابعة السكري", instructions: "صيام 12 ساعة", done: false },
+                        { id: 103, hospital: "مركز الأشعة الدولي", clinic: "قسم الأشعة", doctor: "", spec: "أشعة", date: "2026-01-20", time: "16:00", sand: "أنا", condition: "آلام الظهر", done: false },
+                        { id: 104, hospital: "عيادة القلب", clinic: "القلب", doctor: "د. سمير", spec: "قلب", date: "2026-02-10", time: "10:00", sand: "مطلوب مرافق", condition: "مراجعة", done: false },
+                        { id: 105, hospital: "مستشفى العيون", clinic: "الشبكية", doctor: "د. عصام", spec: "عيون", date: "2026-03-05", time: "08:30", sand: "مطلوب مرافق", condition: "حقن شبكية", done: false },
                         { id: 102, hospital: "مستشفى العيون", clinic: "العيون", doctor: "د. سالم", spec: "عيون", date: "2023-10-10", time: "08:00", sand: "أحمد (أنا)", condition: "فحص دوري", done: true }
                     ],
                     documents: [
                         { id: 101, title: "تقرير أشعة الصدر", type: "report", date: "2023-12-05", file: "xray.jpg", desc: "متابعة حالة الربو" }
                     ]
                 },
-                proxy2: {
-                    id: 'proxy2', type: 'proxy', name: "سارة (الأخت)", color: "bg-pink-600", gender: 'female',
-                    relation: "أخت", conditions: ["حساسية"],
+                proxy_ahmed: { // Ahmed moved to Proxy
+                    id: 'proxy_ahmed', type: 'proxy', name: "أحمد (الأخ)", color: "bg-saudi-green", gender: 'male',
+                    relation: "أخ", conditions: ["الضغط"],
                     meds: [
                          { 
-                            id: 201, name: "Zyrtec", type: "حبوب", dose: "10mg", 
-                            freqType: "scheduled", freq: "مرة يومياً", times: ["21:00"], 
-                            duration: "عند الحاجة", days: ["يومياً"],
-                            stock: 10, totalStock: 20, taken: false, warning: false,
+                             id: 1, name: "بنادول إكسترا", type: "حبوب", dose: "500mg", 
+                             freqType: "prn", freq: "عند اللزوم", times: [], duration: "مستمر", 
+                             stock: 20, totalStock: 30, taken: false, 
+                             history: [{date:'2023-12-10', status:'taken'}],
+                             missedInstruction: "يمكن أخذ الجرعة في أي وقت عند الشعور بالألم.",
+                             image: null
+                         }
+                    ],
+                    appointments: [
+                        { id: 1, hospital: "عيادات الماسة", clinic: "عيادة الأسنان", doctor: "د. خالد السعيد", spec: "أسنان", date: "2026-01-10", time: "10:00", sand: "لا يوجد", condition: "تنظيف دوري", done: false },
+                        { id: 2, hospital: "النادي الصحي", clinic: "العلاج الطبيعي", doctor: "أ. فهد", spec: "علاج طبيعي", date: "2026-01-15", time: "17:00", sand: "لا يوجد", condition: "إصابة رياضية", done: false },
+                        { id: 99, hospital: "مستشفى التخصصي", clinic: "عيادة الباطنية", doctor: "د. فهد", spec: "باطنية", date: "2026-02-05", time: "09:00", sand: "لا يوجد", condition: "فحص دوري", done: false }
+                    ],
+                    documents: [
+                        { id: 1, title: "تحليل دم شامل", type: "lab", date: "2023-11-10", file: "report.pdf", desc: "فحص دوري سنوي" }
+                    ]
+                },
+                proxy_mother: { // Added Mother
+                    id: 'proxy_mother', type: 'proxy', name: "نورة (الوالدة)", color: "bg-pink-500", gender: 'female', // Changed Color
+                    relation: "الوالدة", conditions: ["ضغط", "هشاشة عظام"],
+                    meds: [
+                        { 
+                            id: 301, name: "Calcium + Vit D", type: "حبوب", dose: "600mg", 
+                            freqType: "scheduled", freq: "مرة يومياً", times: ["10:00"], 
+                            duration: "مستمر", days: ["يومياً"],
+                            stock: 25, totalStock: 30, taken: false, warning: false,
                             history: [],
-                            missedInstruction: "خذها وقت التذكر",
+                            missedInstruction: "خذها مع وجبة الغداء",
                             image: null
                         }
                     ],
                     appointments: [
-                         { id: 201, hospital: "مستشفى الولادة", clinic: "نساء وولادة", doctor: "د. نورة", spec: "نساء", date: "2025-06-01", time: "11:00", sand: "لا يوجد", condition: "متابعة حمل", done: false }
+                         { id: 301, hospital: "مدينة الملك فهد", clinic: "العظام", doctor: "د. سعاد", spec: "عظام", date: "2026-01-12", time: "08:30", sand: "مطلوب مرافق", condition: "متابعة هشاشة", done: false },
+                         { id: 302, hospital: "مركز السكري", clinic: "التثقيف الصحي", doctor: "أ. ليلى", spec: "تثقيف", date: "2026-01-25", time: "10:00", sand: "سارة (أنا)", condition: "حمية غذائية", done: false }
                     ],
                     documents: []
                 }
@@ -340,11 +389,11 @@
         let state = {};
 
         function loadState() {
-            const stored = localStorage.getItem('sehatuna_state_v12'); // Version bump
+            const stored = localStorage.getItem('sehatuna_state_v15_mother_color'); // Version bump for Mother Color
             if (stored) state = JSON.parse(stored);
             else { state = JSON.parse(JSON.stringify(DEFAULT_STATE)); saveState(); }
         }
-        function saveState() { localStorage.setItem('sehatuna_state_v12', JSON.stringify(state)); renderProfileDropdown(); }
+        function saveState() { localStorage.setItem('sehatuna_state_v15_mother_color', JSON.stringify(state)); renderProfileDropdown(); updateHeader(); }
 
         document.addEventListener('DOMContentLoaded', () => {
             loadState(); navigate('dashboard'); updateHeader(); renderProfileDropdown(); renderNotifications();
@@ -399,13 +448,21 @@
             let allMeds = [];
             Object.keys(state.profiles).forEach(key => {
                 const profile = state.profiles[key];
-                profile.appointments.forEach(app => {
-                    if (!app.done) allAppointments.push({ ...app, profileName: profile.name, profileColor: profile.color, profileKey: key, profileType: profile.type });
-                });
-                profile.meds.forEach(med => {
-                    allMeds.push({ ...med, profileName: profile.name, profileColor: profile.color, profileKey: key });
-                });
+                if (key === state.currentProfile || state.currentProfile === 'primary') { // Show only relevant items if in proxy mode
+                    profile.appointments.forEach(app => {
+                        if (!app.done) allAppointments.push({ ...app, profileName: profile.name, profileColor: profile.color, profileKey: key, profileType: profile.type });
+                    });
+                    profile.meds.forEach(med => {
+                        allMeds.push({ ...med, profileName: profile.name, profileColor: profile.color, profileKey: key });
+                    });
+                }
             });
+            // If viewing a proxy profile, filter to show ONLY their items
+            if(state.currentProfile !== 'primary') {
+                allAppointments = allAppointments.filter(a => a.profileKey === state.currentProfile);
+                allMeds = allMeds.filter(m => m.profileKey === state.currentProfile);
+            }
+            
             allAppointments.sort((a, b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time));
 
             return `
@@ -733,8 +790,11 @@
             } else if (type === 'add-supporter') {
                 content.innerHTML = `
                     <div class="p-6">
-                        <h3 class="font-bold text-xl mb-4 text-blue-600">دعوة مساند</h3>
-                        <p class="text-sm text-gray-500 mb-4">امنح شخصاً آخر صلاحية الوصول لملفك أو ملفات من ترعاهم.</p>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-xl text-blue-600">دعوة مساند</h3>
+                            <button onclick="closeModal()" class="text-gray-400 hover:text-red-500"><i class="ph-bold ph-x icon-std"></i></button>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">امنح شخصاً آخر صلاحية الوصول لملفك.</p>
                         <form onsubmit="event.preventDefault(); showToast('تم إرسال الدعوة'); closeModal();" class="space-y-4">
                             <div><label class="text-xs font-bold block mb-1">رقم الجوال</label><input class="w-full border rounded p-2" placeholder="05xxxxxxxx"></div>
                             <div>
@@ -886,8 +946,32 @@
         function toggleNotifications() { document.getElementById('notification-panel').classList.toggle('open'); }
         function renderNotifications() { document.getElementById('notifications-list').innerHTML = `<div class="alert-card"><div class="alert-strip orange"></div><div class="alert-content"><div class="alert-flex"><div class="alert-icon-wrapper text-alert-orange"><i class="ph-bold ph-pill"></i></div><div><h4 class="alert-title">اقتراب نفاذ دواء</h4><p class="alert-desc">دواء Metformin للوالد قارب على الانتهاء</p></div></div></div></div>`; }
         function switchProfile(key) { state.currentProfile = key; saveState(); navigate('dashboard'); }
-        function renderProfileDropdown() { /* existing */ }
-        function updateHeader() { /* existing */ }
+        
+        // --- ADDED FUNCTIONS FOR PROFILE HEADER ---
+        function renderProfileDropdown() {
+             const list = document.getElementById('profile-dropdown');
+             list.innerHTML = Object.values(state.profiles).map(p => `
+                <button onclick="switchProfile('${p.id}')" class="w-full text-right flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition ${state.currentProfile === p.id ? 'bg-gray-50 ring-1 ring-gray-200' : ''}">
+                    <div class="w-10 h-10 rounded-full ${p.color} text-white flex items-center justify-center font-bold shadow-sm">${p.name.charAt(0)}</div>
+                    <div>
+                        <p class="font-bold text-gray-800 text-sm">${p.name}</p>
+                        <p class="text-xs text-gray-500">${p.relation}</p>
+                    </div>
+                    ${state.currentProfile === p.id ? '<i class="ph-fill ph-check-circle text-saudi-green mr-auto"></i>' : ''}
+                </button>
+            `).join('') + `<div class="border-t border-gray-100 mt-2 pt-2"><button onclick="openModal('add-patient')" class="w-full text-right flex items-center gap-2 p-2 text-sm font-bold text-saudi-green hover:bg-green-50 rounded-lg"><i class="ph-bold ph-plus"></i> إضافة تابع جديد</button></div>`;
+        }
+
+        function updateHeader() {
+            const profile = state.profiles[state.currentProfile];
+            if(profile) {
+                document.getElementById('user-greeting-header').innerText = profile.name;
+                const iconDiv = document.getElementById('current-profile-icon');
+                iconDiv.innerText = profile.name.charAt(0);
+                iconDiv.className = `w-8 h-8 rounded-full ${profile.color} text-white flex items-center justify-center font-bold text-sm`;
+            }
+        }
+        
         function quickAdd() { openModal('add-appointment'); }
     </script>
 </body>
