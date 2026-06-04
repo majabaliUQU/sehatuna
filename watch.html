@@ -1,789 +1,2901 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sehatuna WatchOS Simulation</title>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;700&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>صحتنا — Apple Watch | هوية منصة صحتنا</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+   :root {
+    /* هوية منصة صحتنا */
+    --green: #14593C;
+    --green-dark: #0E4530;
+    --green-light: #E8F1ED;
+    --green-soft: #D1E7DC;
+    --pink: #DB2777;
+    --pink-light: #FDF2F8;
+    --blue: #2563EB;
+    --blue-light: #EFF6FF;
+    --red: #E11D48;
+    --red-light: #FEF2F2;
+    --bg: #F8F8F7;
 
-    <style>
-        :root {
-            --watch-bg: #000000;
-            --watch-frame: #C0C0C0; /* Titanium */
-            --accent-color: #00E676; /* Bright Green */
-            --danger-color: #FF3B30;
-            --warning-color: #FF9500;
-            --info-color: #0A84FF;
-            --text-primary: #FFFFFF;
-            --text-secondary: #98989E;
-            --glass-bg: rgba(255, 255, 255, 0.12);
-        }
+    /* ألوان خصائص الساعة من ألوان الموقع */
+    --c-meds: var(--green);
+    --c-meds-d: #FFFFFF;
+    --c-appts: var(--blue);
+    --c-appts-d: #FFFFFF;
+    --c-inv: var(--pink);
+    --c-inv-d: #FFFFFF;
+    --c-pat: var(--blue); /* تنبيهات الوالد عبدالله */
+    --c-pat-d: #FFFFFF;
+    --c-warn: #DC2626;
+    --c-notif: var(--pink);
+    --c-notif-d: #FFFFFF;
+    --c-docs: var(--green);
+    --c-docs-d: #FFFFFF;
+  }
+ 
+  body {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, #e8e8eb 0%, #b8b8bc 100%);
+    font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    padding: 2rem 1rem;
+  }
+  .page { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
+  .watch-wrap { position: relative; width: 300px; height: 560px; }
+ 
+  .strap-top, .strap-bot { position: absolute; left: 50%; transform: translateX(-50%); width: 132px; background: #19191b; z-index: 1; }
+  .strap-top { top: 4px; height: 116px; border-radius: 28px 28px 6px 6px; }
+  .strap-bot { bottom: 4px; height: 116px; border-radius: 6px 6px 28px 28px; }
+  .strap-top::after, .strap-bot::after { content: ''; position: absolute; left: 0; right: 0; height: 6px; background: #050506; }
+  .strap-top::after { bottom: -2px; border-radius: 0 0 3px 3px; }
+  .strap-bot::after { top: -2px; border-radius: 3px 3px 0 0; }
+ 
+  .watch { position: absolute; top: 116px; left: 50%; transform: translateX(-50%); width: 268px; height: 326px; background: #1a1a1c; border-radius: 56px; z-index: 2; border-top: 1px solid #2e2e30; border-bottom: 1px solid #050505; box-shadow: 0 8px 24px rgba(0,0,0,0.3), inset 0 0 0 1px #0a0a0b; }
+  .crown { position: absolute; right: -12px; top: 80px; width: 18px; height: 40px; background: #2c2c2e; border-radius: 3px 5px 5px 3px; z-index: 3; border: none; border-left: 1px solid #1a1a1a; box-shadow: inset -1px 0 0 #0a0a0a, 1px 0 2px rgba(0,0,0,0.4); cursor: pointer; transition: transform 0.12s ease; padding: 0; }
+  .crown:active { transform: translateX(-3px); }
+  .crown::before { content: ''; position: absolute; inset: 4px 1px 4px 2px; background-image: repeating-linear-gradient(0deg, #141416 0, #141416 1.5px, #3e3e40 1.5px, #3e3e40 3px); border-radius: 2px; pointer-events: none; }
+  .crown::after { content: ''; position: absolute; right: -1px; top: 50%; transform: translateY(-50%); width: 4px; height: 24px; background: #0a0a0c; border-radius: 0 2px 2px 0; pointer-events: none; }
+  .side-btn { position: absolute; right: -6px; top: 152px; width: 11px; height: 40px; background: #2c2c2e; border: none; border-radius: 2px 4px 4px 2px; border-top: 1px solid #4a4a4c; z-index: 3; cursor: pointer; padding: 0; }
+  .side-btn:active { transform: translateX(-3px); }
+  .speaker { position: absolute; left: -3px; top: 116px; width: 5px; height: 56px; background: #050506; border-radius: 1px 0 0 1px; z-index: 3; }
+ 
+  .display { position: absolute; top: 14px; left: 14px; right: 14px; bottom: 14px; background: #000; border-radius: 44px; overflow: hidden; color: #fff; }
+  .status-bar { direction: ltr; display: flex; justify-content: flex-end; padding: 10px 22px 4px; font-size: 12px; }
+  /* Hide global status bar when inside Sehetna app — brand-header takes over */
+  .display.in-app .status-bar { display: none; }
+  .status-time { color: var(--c-meds); font-weight: 600; }
+  .view { height: calc(100% - 32px); position: relative; }
+ 
+  /* HONEYCOMB */
+  .honey { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 8px; }
+  .honey-row { display: flex; gap: 5px; margin-top: -2px; }
+  .honey-row:first-child { margin-top: 0; }
+  .honey-offset { padding-inline-start: 25px; }
+  .honey-edge { transform: scale(0.72); opacity: 0.55; margin-top: -10px; margin-bottom: -10px; }
+  .app { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.18s ease; border: none; padding: 0; flex-shrink: 0; }
+  .app:hover { transform: scale(1.12); }
+  .app:active { transform: scale(0.92); }
+  .app svg { width: 56%; height: 56%; }
+  .app-phone, .app-msg { background: #34c759; }
+  .app-mail, .app-weather { background: #007aff; }
+  .app-music, .app-news { background: #fa233b; }
+  .app-camera, .app-maps, .app-fitness, .app-clock, .app-stocks { background: #1c1c1e; }
+  .app-heart { background: #ff2d55; }
+  .app-settings { background: #6e6e73; }
+  .app-podcasts { background: #c155de; }
+  .app-sehetna { background: var(--c-meds); box-shadow: 0 0 0 2px rgba(0,230,118,0.28); }
+  .app-notif-home { background: var(--c-notif); box-shadow: 0 0 0 2px rgba(255,55,95,0.28); }
+ 
+  /* ───── BRAND HEADER (top bar: mic + "صحتنا" + time on one line) ───── */
+  .brand-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px 6px;
+    flex-shrink: 0;
+    direction: rtl;
+  }
+  .brand-header-right {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .brand-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--c-meds);
+    letter-spacing: 0.2px;
+  }
+  .brand-mic {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.15s, transform 0.12s;
+  }
+  .brand-mic:hover { background: rgba(255,255,255,0.2); }
+  .brand-mic:active { transform: scale(0.92); }
+  .brand-mic svg { width: 13px; height: 13px; fill: var(--c-meds); }
+  .brand-time {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--c-meds);
+    direction: ltr;
+  }
+ 
+  /* HEADER */
+  .app-header { display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+  .back-btn { background: transparent; border: none; font-size: 24px; line-height: 1; cursor: pointer; padding: 0 4px; font-family: inherit; }
+  .app-title { flex: 1; text-align: center; font-size: 15px; font-weight: 600; margin-inline-end: 28px; }
+ 
+  /* MIC BUTTON in header */
+  .mic-btn {
+    background: rgba(255,255,255,0.08);
+    border: none;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background 0.15s, transform 0.12s;
+  }
+  .mic-btn:hover { background: rgba(255,255,255,0.16); }
+  .mic-btn:active { transform: scale(0.92); }
+  .mic-btn svg { width: 14px; height: 14px; fill: var(--c-meds); }
+  .meds-theme  .back-btn, .meds-theme  .app-title  { color: var(--c-meds); }
+  .appts-theme .back-btn, .appts-theme .app-title  { color: var(--c-appts); }
+  .inv-theme   .back-btn, .inv-theme   .app-title  { color: var(--c-inv); }
+  .docs-theme  .back-btn, .docs-theme  .app-title  { color: var(--c-docs); }
+  .notif-theme .back-btn, .notif-theme .app-title  { color: var(--c-notif); }
+  .menu-theme  .back-btn { color: var(--c-meds); }
+  .menu-theme  .app-title { color: #fff; }
+ 
+  /* HORIZONTAL PAGINATION */
+  .h-pages {
+    flex: 1;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+  }
+  .h-pages::-webkit-scrollbar { display: none; }
+  .h-page {
+    flex: 0 0 100%;
+    height: 100%;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .v-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px 10px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .v-scroll::-webkit-scrollbar { width: 0; }
+ 
+  .h-dots {
+    display: flex; gap: 5px; justify-content: center;
+    padding: 6px 0 10px; flex-shrink: 0;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.25); transition: all 0.25s ease; }
+  .dot.active { width: 18px; background: white; }
+ 
+  /* ───── VERTICAL SNAP SCROLL (Apple Watch style for main menu) ───── */
+  .v-snap-container {
+    flex: 1;
+    overflow-y: scroll;
+    /* Mandatory vertical snap — page locks to nearest section */
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    /* Hide scrollbar across browsers */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .v-snap-container::-webkit-scrollbar { display: none; }
+ 
+  .v-snap-section {
+    /* Each section takes full visible height of its container */
+    height: 100%;
+    min-height: 100%;
+    /* Lock to top edge of viewport when scrolling stops */
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+  }
+ 
+  /* Side vertical dots — fixed over the scrolling content */
+  .v-side-dots {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .v-dot {
+    width: 5px;
+    height: 5px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 50%;
+    margin: 3px 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .v-dot.active {
+    background: var(--c-meds);
+    height: 14px;
+    border-radius: 3px;
+  }
+  .menu-card-btn { background: transparent; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 0; color: white; font-family: inherit; }
+  .menu-card-circle { width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.18s ease; }
+  .menu-card-btn:hover .menu-card-circle { transform: scale(1.06); }
+  .menu-card-btn:active .menu-card-circle { transform: scale(0.93); }
+  .menu-card-circle svg { width: 50px; height: 50px; fill: white; }
+  .menu-c-meds  { background: var(--c-meds);  box-shadow: 0 6px 18px rgba(0,230,118,0.35); }
+  .menu-c-appts { background: var(--c-appts); box-shadow: 0 6px 18px rgba(10,132,255,0.35); }
+  .menu-c-inv   { background: var(--c-inv);   box-shadow: 0 6px 18px rgba(255,159,10,0.35); }
+  .menu-c-notif { background: var(--c-notif); box-shadow: 0 6px 18px rgba(255,55,95,0.35); }
+  .menu-card-label { font-size: 19px; font-weight: 700; letter-spacing: -0.2px; }
+ 
+  /* PERSON HEADER */
+  .person-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px 10px;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .person-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .meds-theme  .avatar-me { background: var(--c-meds);  color: var(--c-meds-d); }
+  .appts-theme .avatar-me { background: var(--c-appts); color: white; }
+  .inv-theme   .avatar-me { background: var(--c-inv);   color: var(--c-inv-d); }
+  .avatar-patient { background: var(--c-pat); color: white; }
+  .person-info { flex: 1; min-width: 0; }
+  .person-name { font-size: 15px; font-weight: 700; line-height: 1.1; }
+  .person-rel { font-size: 11px; opacity: 0.55; margin-top: 1px; }
+  .person-tag {
+    font-size: 10px; font-weight: 700;
+    padding: 4px 8px; border-radius: 7px;
+    letter-spacing: 0.3px;
+  }
+  .meds-theme  .tag-me { background: var(--c-meds);  color: var(--c-meds-d); }
+  .appts-theme .tag-me { background: var(--c-appts); color: white; }
+  .inv-theme   .tag-me { background: var(--c-inv);   color: var(--c-inv-d); }
+  .tag-patient { background: var(--c-pat); color: white; }
+ 
+  /* HERO CARD */
+  .hero {
+    border-radius: 18px;
+    padding: 13px 15px;
+    margin-bottom: 10px;
+  }
+  .hero-meds  { background: var(--c-meds);  color: var(--c-meds-d); }
+  .hero-appts { background: var(--c-appts); color: white; }
+  .hero-warn  { background: var(--c-warn);  color: white; }
+  .hero-label { font-size: 11px; font-weight: 600; opacity: 0.75; letter-spacing: 0.4px; text-transform: uppercase; }
+  .hero-time  { font-size: 28px; font-weight: 700; line-height: 1.1; margin: 4px 0 2px; }
+  .hero-name  { font-size: 14px; font-weight: 600; line-height: 1.3; }
+  .hero-sub   { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+ 
+  .person-patient .hero-meds  { background: var(--c-pat); color: white; }
+  .person-patient .hero-appts { background: var(--c-pat); color: white; }
+ 
+  .section-label {
+    font-size: 12px; font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    margin: 4px 4px 6px;
+    letter-spacing: 0.3px;
+  }
+ 
+  /* MED row */
+  .med-item { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 14px; background: rgba(255,255,255,0.06); margin-bottom: 6px; cursor: pointer; transition: background 0.15s; }
+  .med-item:hover { background: rgba(255,255,255,0.09); }
+  .med-item.taken { opacity: 0.4; }
+  .med-time-badge { background: rgba(0,230,118,0.18); color: var(--c-meds); border-radius: 10px; padding: 6px 7px; font-size: 11px; font-weight: 700; min-width: 50px; text-align: center; line-height: 1.2; }
+  .person-patient .med-time-badge { background: rgba(191,90,242,0.2); color: var(--c-pat); }
+  .med-item.taken .med-time-badge { background: rgba(255,255,255,0.06); color: #888; }
+  .med-info { flex: 1; min-width: 0; }
+  .med-name { font-size: 14px; font-weight: 600; line-height: 1.3; }
+  .med-dose { font-size: 11px; color: #999; margin-top: 2px; }
+  .med-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .med-item.taken .med-check { background: var(--c-meds); border-color: var(--c-meds); }
+  .person-patient .med-item.taken .med-check { background: var(--c-pat); border-color: var(--c-pat); }
+  .med-check svg { width: 12px; height: 12px; opacity: 0; }
+  .med-item.taken .med-check svg { opacity: 1; }
+ 
+  /* APPT — only one card */
+  .appt-card-label { font-size: 11px; font-weight: 600; opacity: 0.6; letter-spacing: 0.3px; text-transform: uppercase; }
+  .appt-date { font-size: 12px; font-weight: 700; color: var(--c-appts); margin-top: 4px; }
+  .person-patient .appt-date { color: var(--c-pat); }
+  .appt-time-big { font-size: 28px; font-weight: 700; margin: 4px 0 6px; line-height: 1.05; }
+  .appt-hospital { font-size: 15px; font-weight: 600; line-height: 1.3; }
+  .appt-dept { font-size: 13px; color: #aaa; margin-top: 4px; }
+ 
+  /* INVENTORY — bigger fonts */
+  .inv-card {
+    background: rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 13px 14px;
+    margin-bottom: 8px;
+  }
+  .inv-card.low { background: rgba(255,69,58,0.12); border: 1.5px solid rgba(255,69,58,0.4); }
+  .inv-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; gap: 8px; }
+  .inv-name { font-size: 16px; font-weight: 700; line-height: 1.2; }
+  .inv-qty { font-size: 14px; color: #aaa; flex-shrink: 0; font-weight: 700; }
+  .inv-card.low .inv-qty { color: var(--c-warn); }
+  .inv-bar-track { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+  .inv-bar-fill { height: 100%; background: var(--c-inv); border-radius: 4px; }
+  .inv-card.low .inv-bar-fill { background: var(--c-warn); }
+  .inv-bar-fill.high { background: var(--c-meds); }
+  .inv-days { font-size: 13px; color: #bbb; margin-top: 8px; font-weight: 600; }
+  .inv-card.low .inv-days { color: var(--c-warn); font-weight: 700; }
+ 
+  /* ───── NOTIFICATIONS SECTION ───── */
+  .notif-intro {
+    padding: 14px 14px 10px;
+    text-align: center;
+  }
+  .notif-intro-icon { font-size: 36px; line-height: 1; margin-bottom: 8px; }
+  .notif-intro-title { font-size: 15px; font-weight: 700; color: var(--c-notif); margin-bottom: 4px; }
+  .notif-intro-sub { font-size: 11px; color: rgba(255,255,255,0.55); line-height: 1.4; }
+ 
+  .notif-trigger-btn {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: none;
+    padding: 11px 12px;
+    border-radius: 14px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 6px;
+    font-family: inherit;
+    transition: background 0.15s, transform 0.1s;
+    text-align: start;
+    color: white;
+  }
+  .notif-trigger-btn:hover { background: rgba(255,255,255,0.1); }
+  .notif-trigger-btn:active { transform: scale(0.98); }
+  .nt-icon {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+  .nt-icon.meds   { background: var(--c-meds);  }
+  .nt-icon.appts  { background: var(--c-appts); }
+  .nt-icon.mrf    { background: var(--c-inv);   }
+  .nt-icon.clinic { background: var(--c-pat);   }
+  .nt-text { flex: 1; min-width: 0; }
+  .nt-label { font-size: 13px; font-weight: 600; line-height: 1.2; }
+  .nt-sub { font-size: 10px; opacity: 0.55; margin-top: 2px; }
+ 
+  /* ───── NOTIFICATION OVERLAY (covers entire watch face) ───── */
+  .notif-overlay {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    z-index: 20;
+    display: none;
+    flex-direction: column;
+    animation: slideDown 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .notif-overlay.active { display: flex; }
+  @keyframes slideDown {
+    from { transform: translateY(-100%); }
+    to   { transform: translateY(0); }
+  }
+ 
+  /* Pulsing/glowing effect for medication alerts — draws attention */
+  .notif-overlay.pulse {
+    animation: slideDown 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+               pulseGlow 1.4s ease-in-out 0.45s infinite;
+  }
+  @keyframes pulseGlow {
+    0%, 100% {
+      box-shadow: inset 0 0 0 0 rgba(0,230,118,0);
+      background: #000;
+    }
+    50% {
+      box-shadow: inset 0 0 60px 8px rgba(0,230,118,0.45);
+      background: #0a1f10;
+    }
+  }
+ 
+  .notif-hdr {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+  }
+  .notif-hdr-icon {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 12px;
+  }
+  .notif-hdr-name { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); }
+  .notif-hdr-time { margin-inline-start: auto; font-size: 11px; color: rgba(255,255,255,0.5); direction: ltr; }
+ 
+  .notif-body {
+    padding: 12px 14px 8px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  .notif-body::-webkit-scrollbar { width: 0; }
+ 
+  .notif-big-icon {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 10px; font-size: 26px;
+  }
+  .notif-big-icon.meds   { background: var(--c-meds);   color: var(--c-meds-d); }
+  .notif-big-icon.appts  { background: var(--c-appts);  color: white; }
+  .notif-big-icon.mrf    { background: var(--c-inv);    color: var(--c-inv-d); }
+  .notif-big-icon.clinic { background: var(--c-pat);    color: white; }
+ 
+  .notif-for {
+    font-size: 10px; font-weight: 700;
+    padding: 3px 8px; border-radius: 6px;
+    margin-bottom: 8px;
+    display: inline-block;
+    letter-spacing: 0.3px;
+  }
+  .notif-for.me      { background: var(--c-meds); color: var(--c-meds-d); }
+  .notif-for.patient { background: var(--c-pat);  color: white; }
+ 
+  .notif-title { font-size: 16px; font-weight: 700; line-height: 1.25; margin-bottom: 4px; }
+  .notif-text { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.4; margin-bottom: 10px; }
+ 
+  .notif-detail-card {
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 8px 11px;
+    margin-bottom: 10px;
+  }
+  .notif-detail-row {
+    display: flex; justify-content: space-between;
+    font-size: 11px; padding: 3px 0;
+  }
+  .notif-detail-key { color: rgba(255,255,255,0.5); }
+  .notif-detail-val { font-weight: 600; }
+ 
+  .notif-actions {
+    padding: 0 12px 12px;
+    display: flex; flex-direction: column; gap: 6px;
+    flex-shrink: 0;
+  }
+  .notif-action-btn {
+    width: 100%;
+    background: rgba(255,255,255,0.12);
+    color: white; border: none;
+    padding: 9px 11px;
+    border-radius: 12px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .notif-action-btn:hover { background: rgba(255,255,255,0.18); }
+  .notif-action-btn:active { transform: scale(0.97); }
+  .notif-action-btn.primary        { background: var(--c-meds);  color: var(--c-meds-d); }
+  .notif-action-btn.primary-blue   { background: var(--c-appts); color: white; }
+  .notif-action-btn.primary-amber  { background: var(--c-inv);   color: var(--c-inv-d); }
+  .notif-action-btn.primary-purple { background: var(--c-pat);   color: white; }
+  .notif-action-btn.danger { background: rgba(255,69,58,0.2); color: var(--c-warn); }
+ 
+  /* ───── SIMPLE MED NOTIFICATION LAYOUT ─────
+     Only: small "حان موعد دوائك" label, BIG medication name, BIG time */
+  .notif-simple {
+    padding: 14px 16px 8px;
+    text-align: center;
+  }
+  .notif-simple-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 12px;
+  }
+  .notif-simple-name {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+  .notif-simple-time {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+    color: var(--c-meds);
+    font-feature-settings: "tnum";
+  }
+  .notif-simple.appts .notif-simple-time { color: var(--c-appts); }
+  .notif-simple.patient .notif-simple-time { color: var(--c-pat); }
+  .notif-simple-sub {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.6);
+    margin-top: 6px;
+  }
+  .notif-simple-for {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 7px;
+    margin-top: 12px;
+    display: inline-block;
+  }
+  .notif-simple-for.me      { background: var(--c-meds); color: var(--c-meds-d); }
+  .notif-simple-for.patient { background: var(--c-pat);  color: white; }
+ 
+  /* ───── ESCORT NOTIFICATION LAYOUT ─────
+     Patient name + appointment details + reminder note */
+  .notif-escort { padding: 12px 14px 8px; }
+  .notif-escort-title {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 10px;
+  }
+  .notif-escort-card {
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .notif-escort-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 4px 0;
+    align-items: baseline;
+  }
+  .notif-escort-key { color: rgba(255,255,255,0.55); font-weight: 500; }
+  .notif-escort-val { font-weight: 700; }
+  .notif-escort-note {
+    background: rgba(255,159,10,0.15);
+    border: 1px solid rgba(255,159,10,0.35);
+    color: var(--c-inv);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 8px 10px;
+    border-radius: 10px;
+    line-height: 1.4;
+    text-align: center;
+  }
+ 
+  /* Countdown badge inside simple notification (for appointments) */
+  .notif-simple-countdown {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 11px;
+    border-radius: 10px;
+    margin: 8px 0 4px;
+    background: rgba(10,132,255,0.18);
+    color: var(--c-appts);
+  }
+  .notif-simple.patient .notif-simple-countdown {
+    background: rgba(191,90,242,0.2);
+    color: var(--c-pat);
+  }
+ 
+  /* ───── CLINIC LAYOUT WITH ROOM + DOCTOR ───── */
+  .notif-clinic-minimal {
+    padding: 14px 14px 8px;
+    text-align: center;
+  }
+  .notif-clinic-title {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+  .notif-clinic-room {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--c-pat);
+    line-height: 1.05;
+    margin-bottom: 4px;
+  }
+  .notif-clinic-doctor {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 2px;
+  }
+  .notif-clinic-dept {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+  }
+ 
+  /* ───── LOW STOCK LAYOUT ───── */
+  .notif-stock {
+    padding: 14px 16px 8px;
+    text-align: center;
+  }
+  .notif-stock-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--c-warn);
+    margin-bottom: 10px;
+  }
+  .notif-stock-name {
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+  .notif-stock-days {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--c-inv);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .notif-stock-note {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.4;
+  }
+ 
+  /* ───── MISSED DOSE LAYOUT ───── */
+  .notif-missed {
+    padding: 14px 16px 8px;
+    text-align: center;
+  }
+  .notif-missed-warning {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--c-warn);
+    margin-bottom: 10px;
+  }
+  .notif-missed-name {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .notif-missed-med {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--c-pat);
+    margin-bottom: 8px;
+  }
+  .notif-missed-time {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    font-weight: 500;
+  }
+ 
+  /* ───── RECORDING OVERLAY ───── */
+  .record-overlay {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    z-index: 15;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    animation: slideDown 0.3s ease;
+  }
+  .record-overlay.active { display: flex; }
+ 
+  .record-status {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--c-warn);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .record-status::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--c-warn);
+    border-radius: 50%;
+    animation: blink 1s ease-in-out infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.3; }
+  }
+ 
+  /* Waveform bars */
+  .waveform {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    height: 50px;
+    margin-bottom: 18px;
+  }
+  .wave-bar {
+    width: 4px;
+    background: var(--c-meds);
+    border-radius: 2px;
+    animation: wave 0.9s ease-in-out infinite;
+  }
+  .wave-bar:nth-child(1) { animation-delay: 0.0s; height: 14px; }
+  .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 28px; }
+  .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 38px; }
+  .wave-bar:nth-child(4) { animation-delay: 0.3s; height: 48px; }
+  .wave-bar:nth-child(5) { animation-delay: 0.4s; height: 32px; }
+  .wave-bar:nth-child(6) { animation-delay: 0.5s; height: 42px; }
+  .wave-bar:nth-child(7) { animation-delay: 0.6s; height: 22px; }
+  .wave-bar:nth-child(8) { animation-delay: 0.5s; height: 34px; }
+  .wave-bar:nth-child(9) { animation-delay: 0.4s; height: 26px; }
+  .wave-bar:nth-child(10){ animation-delay: 0.3s; height: 16px; }
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.4); }
+    50%      { transform: scaleY(1.0); }
+  }
+ 
+  .record-timer {
+    font-size: 30px;
+    font-weight: 800;
+    font-feature-settings: "tnum";
+    margin-bottom: 22px;
+    color: white;
+  }
+  .record-stop-btn {
+    background: var(--c-warn);
+    border: none;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    box-shadow: 0 0 0 4px rgba(255,69,58,0.25);
+    transition: transform 0.15s;
+  }
+  .record-stop-btn:active { transform: scale(0.92); }
+  .record-stop-btn::after {
+    content: '';
+    width: 22px; height: 22px;
+    background: white;
+    border-radius: 4px;
+  }
+ 
+  /* ───── DOCUMENTS VIEW (recordings list) ───── */
+  .doc-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+  }
+  .doc-empty-icon {
+    font-size: 38px;
+    margin-bottom: 10px;
+    opacity: 0.55;
+  }
+  .doc-empty-text {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.4;
+  }
+ 
+  .doc-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.06);
+    margin-bottom: 6px;
+  }
+  .doc-icon {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--c-meds);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .doc-icon svg { width: 18px; height: 18px; fill: var(--c-meds-d); }
+  .doc-info { flex: 1; min-width: 0; }
+  .doc-name {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .doc-meta {
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 2px;
+  }
+  .doc-play {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(0,230,118,0.18);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.15s;
+  }
+  .doc-play:hover { background: rgba(0,230,118,0.3); }
+  .doc-play svg { width: 11px; height: 11px; fill: var(--c-meds); margin-inline-start: 1px; }
+ 
+  /* Highlight newly-added document */
+  .doc-item.new {
+    animation: docHighlight 1.8s ease;
+  }
+  @keyframes docHighlight {
+    0%   { background: rgba(0,230,118,0.4); transform: scale(1.02); }
+    100% { background: rgba(255,255,255,0.06); transform: scale(1); }
+  }
+ 
+  /* DOCS menu icon color */
+  .menu-c-docs { background: var(--c-docs); box-shadow: 0 6px 18px rgba(48,176,199,0.35); }
+ 
+  /* CONFIRMATION SCREEN */
+  .confirmation {
+    position: absolute; inset: 0;
+    background: #000;
+    z-index: 21;
+    display: none;
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    text-align: center;
+    animation: confirmIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .confirmation.active { display: flex; }
+  @keyframes confirmIn {
+    0%   { opacity: 0; transform: scale(0.85); }
+    60%  { opacity: 1; transform: scale(1.05); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+ 
+  .confirm-emoji {
+    font-size: 56px; line-height: 1;
+    margin-bottom: 12px;
+    animation: bounce 0.6s ease;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .confirm-title { font-size: 17px; font-weight: 700; margin-bottom: 5px; }
+  .confirm-msg { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.4; max-width: 220px; }
+  .confirm-meta {
+    margin-top: 12px;
+    background: rgba(255,255,255,0.08);
+    padding: 5px 11px; border-radius: 9px;
+    font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 600;
+  }
+  .confirmation.meds  .confirm-title { color: var(--c-meds); }
+  .confirmation.appts .confirm-title { color: var(--c-appts); }
+  .confirmation.amber .confirm-title { color: var(--c-inv); }
+  .confirmation.purple .confirm-title { color: var(--c-pat); }
+  .confirmation.danger .confirm-title { color: var(--c-warn); }
+ 
+  /* CONTROL CENTER */
+  .control-center { position: absolute; inset: 0; background: rgba(10,10,12,0.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 10; display: none; flex-direction: column; padding: 10px 12px 12px; animation: ccIn 0.22s ease; }
+  @keyframes ccIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .control-center.active { display: flex; }
+  .cc-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .cc-battery-wrap { display: flex; align-items: center; gap: 5px; }
+  .cc-battery-icon { width: 22px; height: 11px; border: 1px solid rgba(255,255,255,0.45); border-radius: 2px; padding: 1px; position: relative; }
+  .cc-battery-icon::after { content: ''; position: absolute; right: -3px; top: 2px; width: 1.5px; height: 5px; background: rgba(255,255,255,0.45); border-radius: 0 1px 1px 0; }
+  .cc-battery-fill { height: 100%; width: 87%; background: var(--c-meds); border-radius: 1px; }
+  .cc-battery-text { color: var(--c-meds); font-size: 13px; font-weight: 600; }
+  .cc-close { background: rgba(255,255,255,0.12); border: none; color: white; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 16px; padding: 0; font-family: inherit; }
+  .cc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; flex: 1; align-content: center; justify-items: center; }
+  .cc-btn { background: rgba(255,255,255,0.1); border: none; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: rgba(255,255,255,0.85); padding: 0; }
+  .cc-btn[data-active="true"] { background: #fff; color: #000; }
+  .cc-btn svg { width: 24px; height: 24px; }
+ 
+  .helper { text-align: center; color: #4a4a50; font-size: 14px; max-width: 360px; line-height: 1.65; }
+  .helper b { color: #00b25b; font-weight: 600; }
+  .helper-row { display: block; margin-top: 4px; font-size: 13px; color: #6a6a70; }
 
-        body {
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'IBM Plex Sans Arabic', sans-serif;
-            overflow: hidden;
-        }
 
-        /* --- Apple Watch Ultra Frame --- */
-        .watch-case {
-            width: 340px;
-            height: 420px;
-            background: #e2e2e2;
-            border-radius: 60px;
-            position: relative;
-            box-shadow: 
-                0 0 0 2px #d1d1d1,
-                0 20px 50px rgba(0,0,0,0.2),
-                inset 0 0 20px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
+  /* ═══ MATCHED TO SEHATNA WEBSITE IDENTITY ═══ */
+  .status-time, .brand-name, .brand-time { color: var(--green); }
+  .brand-mic svg, .mic-btn svg { fill: var(--green); }
+  .app-phone, .app-msg { background: var(--green); }
+  .app-mail, .app-weather { background: var(--blue); }
+  .app-music, .app-news, .app-heart { background: var(--pink); }
+  .app-podcasts { background: var(--red); }
+  .app-sehetna { background: var(--green); box-shadow: 0 0 0 2px rgba(20,89,60,.30); }
+  .app-notif-home { background: var(--pink); box-shadow: 0 0 0 2px rgba(219,39,119,.30); }
+  .menu-c-meds  { background: var(--green); box-shadow: 0 6px 18px rgba(20,89,60,.40); }
+  .menu-c-appts { background: var(--blue); box-shadow: 0 6px 18px rgba(37,99,235,.38); }
+  .menu-c-inv   { background: var(--pink); box-shadow: 0 6px 18px rgba(219,39,119,.36); }
+  .menu-c-docs  { background: var(--green); box-shadow: 0 6px 18px rgba(20,89,60,.40); }
+  .menu-c-notif { background: var(--pink); box-shadow: 0 6px 18px rgba(219,39,119,.36); }
+  .v-dot.active { background: var(--green); }
 
-        /* Digital Crown */
-        .crown {
-            position: absolute;
-            right: -12px;
-            top: 90px;
-            width: 16px;
-            height: 50px;
-            background: linear-gradient(to bottom, #b0b0b0, #f0f0f0, #b0b0b0);
-            border-radius: 4px 8px 8px 4px;
-            border-left: 1px solid #999;
-            z-index: 5;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-        .crown:active { transform: scale(0.95); }
-        .crown::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 70%;
-            height: 40%;
-            border-top: 2px solid #d35400; /* Orange ring */
-            border-bottom: 2px solid #d35400;
-        }
+  .person-avatar { color: #fff; }
+  .avatar-saraa    { background: var(--pink); }
+  .avatar-father   { background: var(--blue); }
+  .avatar-bro      { background: var(--green); }
+  .avatar-mother   { background: var(--red); }
+  .avatar-daughter { background: var(--red); }
+  .tag-saraa    { background: var(--pink); color: #fff; }
+  .tag-father   { background: var(--blue); color: #fff; }
+  .tag-bro      { background: var(--green); color: #fff; }
+  .tag-mother   { background: var(--red); color: #fff; }
+  .tag-daughter { background: var(--red); color: #fff; }
 
-        /* Side Button */
-        .side-btn {
-            position: absolute;
-            right: -6px;
-            top: 160px;
-            width: 8px;
-            height: 80px;
-            background: #cdcdcd;
-            border-radius: 0 4px 4px 0;
-            z-index: 5;
-        }
+  /* Each page follows its person's site color */
+  .family-page .hero-meds,
+  .family-page .hero-appts { background: var(--person-color); color: #fff; }
+  .family-page .med-time-badge {
+    background: var(--person-soft);
+    color: var(--person-color);
+  }
+  .family-page .med-item.taken .med-check {
+    background: var(--person-color);
+    border-color: var(--person-color);
+  }
+  .family-page .inv-bar-fill.high { background: var(--person-color); }
+  .family-page .inv-card.low .inv-bar-fill { background: var(--c-warn); }
+  .family-page .hero-warn { background: var(--c-warn); color: #fff; }
+  .family-page .person-name { font-weight: 800; }
+  .family-page .person-rel { opacity: .65; }
+  .family-page .person-tag { color: #fff; }
+  .family-page .med-check svg { fill: #fff; }
 
-        /* Action Button (Orange) */
-        .action-btn {
-            position: absolute;
-            left: -6px;
-            top: 110px;
-            width: 8px;
-            height: 50px;
-            background: #FF4500;
-            border-radius: 4px 0 0 4px;
-            z-index: 5;
-            cursor: pointer;
-        }
+  .docs-theme .back-btn, .docs-theme .app-title { color: var(--green); }
+  .doc-icon { background: var(--green); }
+  .doc-icon svg { fill: #fff; }
+  .doc-play { background: rgba(20,89,60,.20); }
+  .doc-play svg { fill: var(--green); }
+  .helper b { color: var(--green); }
 
-        /* Screen */
-        .watch-screen {
-            width: 300px;
-            height: 380px;
-            background-color: var(--watch-bg);
-            border-radius: 44px;
-            overflow: hidden; /* Hide scrollbar usually, but we enable inside */
-            position: relative;
-            color: var(--text-primary);
-            box-shadow: inset 0 0 20px rgba(255,255,255,0.05);
-        }
 
-        /* --- UI Components --- */
-        
-        /* Status Bar */
-        .status-bar {
-            height: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 20px 0;
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        .status-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .mic-icon {
-            color: var(--accent-color);
-            font-size: 16px;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            transition: background 0.2s;
-        }
-        .mic-icon:active { background: rgba(255,255,255,0.3); }
 
-        .time { color: var(--text-primary); }
+  /* ═══ WATCH FACE — first screen ═══ */
+  .watchface-view {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(circle at 50% 42%, rgba(20,89,60,0.16), transparent 34%),
+      radial-gradient(circle at 50% 50%, #07120d 0%, #000 70%);
+    cursor: pointer;
+    user-select: none;
+  }
+  .watchface-top {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    left: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: rgba(255,255,255,0.66);
+    direction: rtl;
+  }
+  .watchface-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--green-soft);
+    font-weight: 700;
+  }
+  .watchface-brand-mark {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--green);
+    display: grid; place-items: center;
+  }
+  .watchface-brand-mark svg { width: 9px; height: 9px; fill: white; }
+  .watchface-date {
+    font-size: 13px;
+    color: var(--green-soft);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .watchface-time {
+    direction: ltr;
+    font-size: 50px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -2px;
+    color: white;
+    font-variant-numeric: tabular-nums;
+  }
+  .watchface-period {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--green-soft);
+    letter-spacing: 0;
+    margin-right: 4px;
+  }
+  .watchface-complications {
+    display: flex;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .watchface-complication {
+    min-width: 76px;
+    padding: 8px 9px;
+    border-radius: 12px;
+    border: 1px solid rgba(209,231,220,0.16);
+    background: rgba(20,89,60,0.12);
+    text-align: center;
+  }
+  .watchface-complication .label {
+    font-size: 9.5px;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 3px;
+  }
+  .watchface-complication .value {
+    font-size: 12px;
+    color: var(--green-soft);
+    font-weight: 700;
+  }
+  .watchface-open-hint {
+    position: absolute;
+    bottom: 18px;
+    font-size: 10.5px;
+    color: rgba(255,255,255,0.48);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .watchface-open-hint::before {
+    content: '';
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 4px rgba(20,89,60,.18);
+  }
 
-        /* Scroll Container */
-        .app-container {
-            height: 350px;
-            overflow-y: auto;
-            padding: 10px 12px 60px; /* Bottom padding for scroll */
-            box-sizing: border-box;
-            scroll-behavior: smooth;
-        }
-        
-        /* Custom Scrollbar for Watch feel */
-        .app-container::-webkit-scrollbar { width: 4px; }
-        .app-container::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+  /* ═══ APPLE WATCH-STYLE EMERGENCY SOS PROTOTYPE ═══ */
+  .sos-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    background: #000;
+    color: #fff;
+    display: none;
+    flex-direction: column;
+    padding: 16px 14px 14px;
+    animation: sosAppear .22s ease;
+  }
+  .sos-overlay.active { display: flex; }
+  @keyframes sosAppear { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: scale(1); } }
+  .sos-header { display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px; }
+  .sos-header-title { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.72); }
+  .sos-close-btn {
+    width: 26px; height: 26px; border-radius: 50%; border: none;
+    background: rgba(255,255,255,.14); color: white; cursor: pointer; font-size: 16px;
+  }
+  .sos-medical-row {
+    display:flex; align-items:center; gap: 10px;
+    padding: 10px 12px; border-radius: 16px;
+    background: rgba(255,255,255,.07); margin-bottom: 10px;
+  }
+  .sos-medical-ic {
+    width: 33px; height: 33px; border-radius: 50%; display:grid; place-items:center;
+    background: white; color: var(--red); font-weight: 800; font-size: 19px;
+  }
+  .sos-medical-label { font-size: 13px; font-weight: 700; }
+  .sos-medical-sub { font-size: 10px; color: rgba(255,255,255,.55); margin-top:2px; }
+  .sos-call-slider {
+    display:flex; align-items:center; gap: 10px; width:100%;
+    background: rgba(220,38,38,.24); border: 1px solid rgba(220,38,38,.48);
+    color: white; border-radius: 999px; padding: 5px 8px 5px 5px;
+    cursor:pointer; font-family: inherit; text-align:right; margin-top: auto;
+  }
+  .sos-slider-knob {
+    width: 42px; height:42px; border-radius:50%; background: var(--c-warn);
+    display:grid; place-items:center; color:#fff; flex:none;
+    box-shadow: 0 0 0 3px rgba(220,38,38,.18);
+  }
+  .sos-slider-knob svg { width:21px; height:21px; fill:#fff; }
+  .sos-slider-txt { flex:1; font-weight:700; font-size:13px; }
+  .sos-slider-hint { font-size:9.5px; opacity:.55; margin-top:2px; }
+  .sos-countdown {
+    flex:1; display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  }
+  .sos-countdown.active { display:flex; }
+  .sos-countdown-title { font-size: 13px; color: rgba(255,255,255,.65); margin-bottom:8px; }
+  .sos-countdown-num { font-size:72px; font-weight:800; color: var(--c-warn); line-height:1; }
+  .sos-countdown-note { font-size:11px; line-height:1.45; color:rgba(255,255,255,.55); margin:9px 14px 0; }
+  .sos-countdown-cancel {
+    margin-top: 18px; border:none; border-radius:999px; padding:10px 25px;
+    background: rgba(255,255,255,.13); color:white; font-family:inherit; font-weight:700; cursor:pointer;
+  }
+  .side-hold-tip { color: #6a6a70; display:block; font-size:12px; margin-top:4px; }
 
-        /* Notification List Item */
-        .notif-item {
-            background: var(--glass-bg);
-            border-radius: 16px;
-            padding: 12px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .notif-item:active { transform: scale(0.97); background: rgba(255,255,255,0.2); }
 
-        .app-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-        
-        .notif-content { flex: 1; }
-        .notif-title { font-size: 14px; font-weight: 700; margin: 0 0 2px; }
-        .notif-subtitle { font-size: 12px; color: var(--text-secondary); margin: 0; line-height: 1.3; }
-        .notif-time { font-size: 10px; color: #666; margin-top: 4px; display: block;}
 
-        /* Icon Colors */
-        .icon-med { background: #34C759; color: black; }
-        .icon-alert { background: #FF3B30; color: white; }
-        .icon-warn { background: #FF9500; color: black; }
-        .icon-info { background: #0A84FF; color: white; }
-        .icon-sand { background: #AF52DE; color: white; }
+  /* ═══ WCAG AA CONTRAST + QUIETER INTERNAL SCREENS ═══
+     هوية الموقع محفوظة في الأخضر/الوردي/الأزرق الخاص بالشخصيات.
+     داخل شاشات المهام نستخدم الأخضر كلون إجراء موحد لتقليل التشتت. */
+  :root {
+    --surface-black: #000000;
+    --text-on-dark: #FFFFFF;
+    --text-on-dark-secondary: #E8F1ED;
+    --text-on-dark-muted: #B7C8C0;
+    --action-primary: #14593C;
+    --action-primary-soft: #E8F1ED;
+    --action-danger: #DC2626;
+  }
 
-        /* Full Screen Alert View */
-        .full-alert {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(20px);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            padding: 16px;
-            box-sizing: border-box;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            transform: scale(0.9);
-        }
-        .full-alert.active { opacity: 1; pointer-events: all; transform: scale(1); }
+  /* النصوص الواقعة مباشرة فوق الخلفية السوداء لا تستخدم الأخضر الداكن */
+  .status-time,
+  .brand-name,
+  .brand-time,
+  .meds-theme .back-btn, .meds-theme .app-title,
+  .appts-theme .back-btn, .appts-theme .app-title,
+  .inv-theme .back-btn, .inv-theme .app-title,
+  .docs-theme .back-btn, .docs-theme .app-title,
+  .notif-theme .back-btn, .notif-theme .app-title,
+  .menu-theme .back-btn {
+    color: var(--text-on-dark-secondary);
+  }
+  .brand-mic svg, .mic-btn svg { fill: var(--text-on-dark-secondary); }
+  .section-label { color: rgba(255,255,255,.72); }
+  .person-rel { color: var(--text-on-dark-muted); opacity: 1 !important; }
+  .watchface-brand, .watchface-date, .watchface-period,
+  .watchface-complication .value { color: var(--text-on-dark-secondary); }
+  .watchface-complication .label, .watchface-open-hint { color: #B7C8C0; }
 
-        .fa-header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            margin-bottom: 16px;
-            margin-top: 10px;
-        }
-        .fa-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        .fa-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-        .fa-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
+  /* تقليل كثرة الألوان داخل شاشتي الأدوية والمواعيد والمخزون */
+  .family-page .hero-meds,
+  .family-page .hero-appts {
+    background: var(--action-primary);
+    color: #FFFFFF;
+  }
+  .family-page .med-time-badge {
+    background: var(--action-primary-soft);
+    color: var(--action-primary);
+  }
+  .family-page .med-item.taken .med-check {
+    background: var(--action-primary);
+    border-color: var(--action-primary);
+  }
+  .family-page .inv-bar-fill.high { background: var(--action-primary); }
+  .family-page .hero-warn { background: var(--action-danger); color: #FFFFFF; }
+  .inv-card.low .inv-days, .inv-card.low .inv-qty { color: #FCA5A5; }
 
-        .fa-actions {
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
+  /* اللون الخاص بكل شخص يظل في هويته فقط: الصورة والوسم */
+  .person-tag { color: #FFFFFF; }
 
-        .watch-btn {
-            width: 100%;
-            padding: 12px;
-            border-radius: 20px;
-            border: none;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .watch-btn:active { opacity: 0.7; }
-        
-        .btn-primary { background: var(--accent-color); color: black; }
-        .btn-secondary { background: rgba(255,255,255,0.15); color: white; }
-        .btn-danger { background: var(--danger-color); color: white; }
-        
-        /* Recording Specific Styles */
-        .recording-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            gap: 20px;
-        }
-        .waveform {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            height: 40px;
-        }
-        .wave-bar {
-            width: 4px;
-            background: var(--danger-color);
-            border-radius: 2px;
-            animation: wave 1s infinite ease-in-out;
-        }
-        .wave-bar:nth-child(odd) { animation-duration: 0.8s; }
-        .wave-bar:nth-child(2n) { animation-duration: 1.1s; }
-        .wave-bar:nth-child(3n) { animation-duration: 1.3s; }
-        .paused .wave-bar { animation-play-state: paused; height: 4px !important; }
+  /* التنبيهات: هوية موحدة، والأحمر للحالات الحرجة فقط */
+  .notif-simple-time,
+  .notif-simple.appts .notif-simple-time,
+  .notif-simple.patient .notif-simple-time,
+  .notif-stock-days,
+  .notif-clinic-room,
+  .notif-missed-med {
+    color: var(--text-on-dark-secondary);
+  }
+  .notif-simple-countdown,
+  .notif-simple.patient .notif-simple-countdown {
+    background: rgba(232,241,237,.14);
+    color: var(--text-on-dark-secondary);
+  }
+  .notif-escort-note {
+    background: rgba(232,241,237,.12);
+    border-color: rgba(232,241,237,.30);
+    color: var(--text-on-dark-secondary);
+  }
+  .notif-stock-label, .notif-missed-warning { color: #FCA5A5; }
+  .notif-action-btn.primary,
+  .notif-action-btn.primary-blue,
+  .notif-action-btn.primary-amber,
+  .notif-action-btn.primary-purple {
+    background: var(--action-primary);
+    color: #FFFFFF;
+  }
+  .notif-big-icon.appts, .notif-big-icon.mrf, .notif-big-icon.clinic {
+    background: var(--action-primary);
+    color: #FFFFFF;
+  }
 
-        @keyframes wave {
-            0%, 100% { height: 10px; opacity: 0.5; }
-            50% { height: 35px; opacity: 1; }
-        }
+  /* التأكيدات وحالات الطوارئ */
+  .confirmation.meds .confirm-title,
+  .confirmation.appts .confirm-title,
+  .confirmation.amber .confirm-title,
+  .confirmation.purple .confirm-title { color: var(--text-on-dark-secondary); }
+  .confirmation.danger .confirm-title,
+  .sos-countdown-num { color: #FCA5A5; }
+  .cc-battery-text { color: var(--text-on-dark-secondary); }
 
-        .timer-big {
-            font-size: 40px;
-            font-weight: 300;
-            font-variant-numeric: tabular-nums;
-        }
-        
-        .rec-controls {
-            display: flex;
-            gap: 16px;
-            margin-top: 10px;
-        }
-        .rec-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-        .rec-btn:active { transform: scale(0.9); }
-        .btn-pause { background: rgba(255,255,255,0.2); color: white; }
-        .btn-stop { background: var(--danger-color); color: white; }
+  /* مؤشرات التفاعل المرئية عند استخدام لوحة المفاتيح */
+  button:focus-visible,
+  .watchface-view:focus-visible {
+    outline: 3px solid var(--green-soft);
+    outline-offset: 2px;
+  }
 
-        .dismiss-btn {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 24px;
-            height: 24px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-            cursor: pointer;
-        }
 
-        /* Toast on Watch */
-        .watch-toast {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.8);
-            background: rgba(50, 50, 50, 0.9);
-            padding: 16px 24px;
-            border-radius: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s;
-            z-index: 200;
-            width: 80%;
-            text-align: center;
-        }
-        .watch-toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        .toast-icon { font-size: 32px; color: var(--accent-color); }
+  /* ═══ PROFESSIONAL UX/UI REFINEMENT — quiet brand system ═══
+     The task screens use one semantic accent (website green).
+     Person colors are retained only as compact identity signals. */
+  :root {
+    --watch-green: #14593C;
+    --watch-green-dark: #0E4530;
+    --watch-green-soft: #D1E7DC;
+    --watch-green-tint: #E8F1ED;
+    --watch-blue: #2563EB;
+    --watch-pink: #DB2777;
+    --watch-red: #DC2626;
+    --watch-surface: #0B100E;
+    --watch-card: #101714;
+    --watch-card-alt: #121C18;
+    --watch-border: rgba(209,231,220,.14);
+    --watch-text: #FFFFFF;
+    --watch-text-secondary: #D1E7DC;
+    --watch-text-muted: #AFC3BA;
+  }
 
-        /* Animation Pulse for SOS */
-        @keyframes pulse-ring {
-            0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(255, 59, 48, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
-        }
-        .sos-active { animation: pulse-ring 2s infinite; }
+  .meds-theme, .appts-theme, .inv-theme { background: #000; }
+  .app-header {
+    min-height: 38px;
+    padding: 4px 12px 8px;
+    border-bottom: 1px solid var(--watch-border);
+  }
+  .context-app-title {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    font-size: 14px;
+    font-weight: 750;
+    color: var(--watch-text) !important;
+    letter-spacing: 0;
+  }
+  .context-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex: none;
+    outline: 2px solid rgba(255,255,255,.12);
+  }
+  .meds-theme .back-btn,
+  .appts-theme .back-btn,
+  .inv-theme .back-btn { color: var(--watch-green-soft) !important; }
 
-        /* Home Screen Grid (App Launcher style just for header) */
-        .home-header {
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .platform-logo { color: var(--accent-color); font-size: 20px; }
-    </style>
+  /* Compact identity only; no competing person-coloured banners */
+  .page-identity {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 9px 12px 2px;
+    color: var(--watch-text-muted);
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+  .identity-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex: none;
+  }
+  .identity-full-name {
+    color: var(--watch-text-secondary);
+    font-weight: 700;
+  }
+  .identity-role {
+    padding-inline-start: 7px;
+    border-inline-start: 1px solid var(--watch-border);
+  }
+
+  .v-scroll { padding: 8px 12px 12px; }
+
+  /* Unified hero component across medication, appointment, and stock screens */
+  .family-page .hero,
+  .family-page .hero-meds,
+  .family-page .hero-appts,
+  .family-page .hero-warn {
+    background: var(--watch-card-alt);
+    color: var(--watch-text);
+    border: 1px solid var(--watch-border);
+    border-right: 3px solid var(--watch-green);
+    box-shadow: none;
+    border-radius: 16px;
+    padding: 12px 13px;
+  }
+  .family-page .hero-warn {
+    border-right-color: var(--watch-red);
+    background: rgba(220,38,38,.09);
+  }
+  .hero-label {
+    font-size: 10px;
+    color: var(--watch-text-muted);
+    opacity: 1;
+    letter-spacing: 0;
+  }
+  .hero-time {
+    color: var(--watch-text);
+    font-size: 27px;
+    margin: 5px 0 4px;
+  }
+  .hero-name { color: var(--watch-text); font-size: 13px; }
+  .hero-sub { color: var(--watch-text-secondary); opacity: 1; font-size: 11px; }
+  .hero-warn .hero-label { color: #FECACA; }
+  .hero-warn .hero-name { color: var(--watch-text-secondary); }
+
+  .section-label {
+    color: var(--watch-text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    margin: 12px 3px 7px;
+  }
+
+  /* Neutral task rows; green only represents action/state */
+  .med-item, .inv-card {
+    background: var(--watch-card);
+    border: 1px solid var(--watch-border);
+    border-radius: 13px;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .med-item { padding: 10px 10px; margin-bottom: 7px; }
+  .med-item:hover, .inv-card:hover {
+    background: var(--watch-card-alt);
+    border-color: rgba(209,231,220,.28);
+  }
+  .med-time-badge,
+  .family-page .med-time-badge {
+    background: rgba(209,231,220,.10);
+    color: var(--watch-green-soft);
+    border: 1px solid rgba(209,231,220,.14);
+    min-width: 52px;
+  }
+  .med-name { color: var(--watch-text); font-size: 13px; font-weight: 700; }
+  .med-dose { color: var(--watch-text-muted); }
+  .med-item.taken { opacity: .58; }
+  .med-check { border-color: rgba(209,231,220,.30); }
+  .family-page .med-item.taken .med-check {
+    background: var(--watch-green);
+    border-color: var(--watch-green);
+  }
+
+  /* Inventory uses green as normal progress and red only for urgent depletion */
+  .inv-card { padding: 11px 12px; margin-bottom: 7px; }
+  .inv-name { color: var(--watch-text); font-size: 13px; }
+  .inv-qty { color: var(--watch-text-secondary); font-size: 12px; }
+  .inv-bar-track { height: 6px; background: rgba(209,231,220,.11); }
+  .inv-bar-fill,
+  .family-page .inv-bar-fill.high { background: var(--watch-green); }
+  .inv-days { color: var(--watch-text-muted); font-size: 11px; margin-top: 7px; }
+  .inv-card.low {
+    background: rgba(220,38,38,.07);
+    border-color: rgba(220,38,38,.27);
+  }
+  .inv-card.low .inv-bar-fill { background: var(--watch-red); }
+  .inv-card.low .inv-days,
+  .inv-card.low .inv-qty { color: #FCA5A5; }
+
+  /* Page indicator returns to brand green, not arbitrary page colour */
+  .h-dots { padding-bottom: 9px; }
+  .dot.active { background: var(--watch-green-soft); }
+
+
+  /* ═══ FINAL REPAIR: focused watch face, true round logo, stable incoming alert ═══ */
+  .page { gap: 0; }
+  .watchface-top {
+    justify-content: flex-end;
+  }
+  .watchface-battery {
+    direction: ltr;
+    font-size: 11px;
+    font-weight: 700;
+    color: #D1E7DC;
+  }
+  .watchface-brand,
+  .watchface-open-hint {
+    display: none !important;
+  }
+
+  .next-med-card {
+    width: 182px;
+    margin-top: 22px;
+    padding: 10px 11px 11px;
+    background: #101714;
+    border: 1px solid rgba(209,231,220,.20);
+    border-radius: 16px;
+    color: #FFFFFF;
+    font-family: inherit;
+    text-align: right;
+    cursor: pointer;
+    transition: background .16s ease, border-color .16s ease, transform .12s ease;
+  }
+  .next-med-card:hover {
+    background: #14211C;
+    border-color: rgba(209,231,220,.36);
+  }
+  .next-med-card:active { transform: scale(.98); }
+  .next-med-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .next-med-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    background: #14593C;
+    color: white;
+    flex: none;
+  }
+  .next-med-icon svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+  }
+  .next-med-label {
+    flex: 1;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #D1E7DC;
+  }
+  .next-med-arrow {
+    color: #D1E7DC;
+    font-size: 18px;
+    line-height: .8;
+    transform: rotate(180deg);
+  }
+  .next-med-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 3px;
+  }
+  .next-med-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: #FFFFFF;
+  }
+  .next-med-time {
+    direction: ltr;
+    font-size: 13px;
+    font-weight: 800;
+    color: #D1E7DC;
+  }
+  .next-med-dose {
+    font-size: 10.5px;
+    font-weight: 500;
+    color: #AFC3BA;
+  }
+
+  #home-view .honey {
+    gap: 7px;
+    padding: 18px 10px;
+  }
+  #home-view .honey-row { margin-top: 0; }
+  #home-view .honey-offset { padding-inline-start: 0; }
+
+  .app-sehetna {
+    border-radius: 50% !important;
+    overflow: hidden;
+    background: transparent !important;
+    box-shadow: 0 0 0 2px rgba(20,89,60,.25) !important;
+  }
+  .app-sehetna img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: block;
+    object-fit: cover;
+  }
+
+  /* تنبيه وارد ثابت: نفس أسلوب الشاشة الأصلي مع إيقاف التمرير فقط */
+  .app-notif-home {
+    background: #14593C !important;
+    box-shadow: 0 0 0 2px rgba(20,89,60,.27) !important;
+  }
+  .notif-overlay {
+    overflow: hidden !important;
+  }
+  .notif-overlay .notif-body {
+    overflow: hidden !important;
+  }
+  .notif-overlay .notif-simple-time,
+  .notif-overlay .notif-simple.appts .notif-simple-time,
+  .notif-overlay .notif-simple.patient .notif-simple-time {
+    color: #D1E7DC !important;
+  }
+  .notif-overlay .notif-simple-for.me,
+  .notif-overlay .notif-simple-for.patient {
+    background: rgba(20,89,60,.38) !important;
+    color: #FFFFFF !important;
+  }
+  .notif-overlay .notif-action-btn.primary,
+  .notif-overlay .notif-action-btn.primary-blue,
+  .notif-overlay .notif-action-btn.primary-amber,
+  .notif-overlay .notif-action-btn.primary-purple {
+    background: #14593C !important;
+    color: #FFFFFF !important;
+  }
+
+
+  /* ═══ NOTIFICATIONS REBUILT — fixed incoming alert previews ═══ */
+  .app-notif-home {
+    background: #14593C !important;
+    box-shadow: 0 0 0 2px rgba(20,89,60,.28) !important;
+  }
+  .notif-overlay {
+    inset: 0;
+    overflow: hidden !important;
+    touch-action: none;
+    background: #050807 !important;
+    display: none;
+    flex-direction: column;
+    z-index: 20;
+  }
+  .notif-overlay.active {
+    display: flex;
+    animation: alertEnter .28s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes alertEnter {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .incoming-head {
+    flex: none;
+    padding: 11px 12px 8px;
+    border-bottom: 1px solid rgba(209,231,220,.12);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .incoming-avatar {
+    width: 29px;
+    height: 29px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    flex: none;
+  }
+  .incoming-person {
+    flex: 1;
+    min-width: 0;
+  }
+  .incoming-name {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #FFFFFF;
+    line-height: 1.15;
+  }
+  .incoming-rel {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #AFC3BA;
+    margin-top: 2px;
+  }
+  .incoming-status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    flex: none;
+  }
+  .incoming-time {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #AFC3BA;
+  }
+  .incoming-badge {
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(209,231,220,.18);
+    background: rgba(20,89,60,.22);
+    color: #D1E7DC;
+    font-size: 9px;
+    font-weight: 800;
+  }
+  .incoming-badge.urgent {
+    color: #FECACA;
+    border-color: rgba(220,38,38,.36);
+    background: rgba(220,38,38,.18);
+  }
+
+  .incoming-content {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 8px 15px 5px;
+    text-align: center;
+  }
+  .incoming-label {
+    color: #AFC3BA;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 9px;
+  }
+  .incoming-primary {
+    color: #FFFFFF;
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 7px;
+  }
+  .incoming-highlight {
+    color: #D1E7DC;
+    font-size: 31px;
+    font-weight: 800;
+    line-height: 1;
+    direction: ltr;
+    margin-bottom: 7px;
+  }
+  .incoming-secondary {
+    color: #AFC3BA;
+    font-size: 11.5px;
+    line-height: 1.45;
+    font-weight: 600;
+  }
+  .incoming-detail-card {
+    border: 1px solid rgba(209,231,220,.13);
+    background: #101714;
+    border-radius: 12px;
+    padding: 8px 10px;
+    margin: 9px auto 0;
+    width: 100%;
+    text-align: right;
+  }
+  .incoming-detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 10.5px;
+    line-height: 1.45;
+    padding: 2px 0;
+  }
+  .incoming-detail-row .k { color: #AFC3BA; }
+  .incoming-detail-row .v { color: #FFFFFF; font-weight: 700; }
+  .incoming-warning {
+    width: 100%;
+    padding: 8px 9px;
+    margin: 9px auto 0;
+    border-radius: 10px;
+    background: rgba(220,38,38,.12);
+    border: 1px solid rgba(220,38,38,.28);
+    color: #FECACA;
+    font-size: 10.5px;
+    line-height: 1.4;
+    font-weight: 700;
+  }
+
+  .incoming-actions {
+    flex: none;
+    padding: 5px 12px 7px;
+    display: flex;
+    gap: 6px;
+  }
+  .incoming-action {
+    min-height: 34px;
+    flex: 1;
+    border-radius: 11px;
+    border: 1px solid rgba(209,231,220,.15);
+    background: rgba(255,255,255,.07);
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .incoming-action.primary {
+    background: #14593C;
+    border-color: #14593C;
+    color: #FFFFFF;
+  }
+  .incoming-action.urgent-primary {
+    background: #DC2626;
+    border-color: #DC2626;
+    color: #FFFFFF;
+  }
+  .incoming-action:hover { filter: brightness(1.08); }
+  .incoming-action:active { transform: scale(.985); }
+
+  /* Prototype navigator: horizontal switching only; the alert itself never scrolls. */
+  .alert-preview-nav {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px 10px;
+    gap: 8px;
+  }
+  .alert-nav-btn {
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    border: 1px solid rgba(209,231,220,.16);
+    background: rgba(255,255,255,.06);
+    color: #D1E7DC;
+    display: grid;
+    place-items: center;
+    font-family: inherit;
+    font-size: 18px;
+    cursor: pointer;
+    flex: none;
+  }
+  .alert-nav-btn:hover {
+    background: rgba(209,231,220,.13);
+  }
+  .alert-dots {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+  }
+  .alert-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(209,231,220,.26);
+    transition: all .18s ease;
+  }
+  .alert-dot.active {
+    width: 17px;
+    border-radius: 999px;
+    background: #D1E7DC;
+  }
+  .alert-page-num {
+    position: absolute;
+    bottom: 12px;
+    right: 48px;
+    left: 48px;
+    pointer-events: none;
+    color: transparent;
+  }
+
+
+  /* ═══ COMPACT NEXT MEDICATION COMPLICATION ═══ */
+  .next-med-card { display: none !important; }
+  .next-med-alert {
+    width: 176px;
+    min-height: 48px;
+    margin-top: 20px;
+    padding: 8px 9px;
+    border-radius: 15px;
+    border: 1px solid rgba(209,231,220,.16);
+    background: rgba(16,23,20,.95);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: right;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background .16s ease, border-color .16s ease, transform .12s ease;
+  }
+  .next-med-alert:hover {
+    background: #14211C;
+    border-color: rgba(209,231,220,.32);
+  }
+  .next-med-alert:active { transform: scale(.98); }
+  .next-med-alert-icon {
+    width: 29px;
+    height: 29px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: #14593C;
+    color: #FFFFFF;
+    flex: none;
+  }
+  .next-med-alert-icon svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
+  .next-med-alert-copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .next-med-alert-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #FFFFFF;
+    line-height: 1.15;
+  }
+  .next-med-alert-remaining {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #D1E7DC;
+    line-height: 1.15;
+  }
+  .next-med-alert-chevron {
+    flex: none;
+    font-size: 19px;
+    line-height: 1;
+    color: #D1E7DC;
+    transform: rotate(180deg);
+  }
+
+
+  /* ═══ FINAL UX REFINEMENTS: concise complication + clean contextual pages + fitted alerts ═══ */
+  .next-med-alert {
+    width: 154px;
+    min-height: 41px;
+    margin-top: 18px;
+    padding: 7px 9px;
+    gap: 7px;
+  }
+  .next-med-alert-icon {
+    width: 27px;
+    height: 27px;
+    border-radius: 9px;
+  }
+  .next-med-alert-chevron { display: none !important; }
+  .next-med-alert-remaining {
+    font-size: 10px;
+  }
+
+  .page-identity { display: none !important; }
+  .family-page .v-scroll {
+    padding-top: 10px;
+  }
+
+  .incoming-content.is-details {
+    justify-content: flex-start;
+    padding: 7px 12px 3px;
+  }
+  .incoming-content.is-details .incoming-label {
+    margin-bottom: 7px;
+    color: #FFFFFF;
+    font-size: 12.5px;
+    font-weight: 800;
+  }
+  .incoming-detail-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+  .incoming-grid-cell {
+    min-width: 0;
+    min-height: 38px;
+    padding: 5px 7px;
+    border-radius: 9px;
+    background: #101714;
+    border: 1px solid rgba(209,231,220,.13);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: right;
+  }
+  .incoming-grid-cell .k {
+    color: #AFC3BA;
+    font-size: 8.7px;
+    font-weight: 700;
+  }
+  .incoming-grid-cell .v {
+    color: #FFFFFF;
+    font-size: 9.8px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  .incoming-actions {
+    padding: 4px 12px 5px;
+  }
+  .incoming-action {
+    min-height: 31px;
+    padding: 5px 6px;
+    font-size: 10.4px;
+  }
+  .alert-preview-nav {
+    padding: 0 12px 7px;
+  }
+  .alert-nav-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+  }
+  .alert-counter {
+    font-size: 10px;
+    font-weight: 700;
+    color: #AFC3BA;
+    direction: ltr;
+  }
+
+</style>
 </head>
 <body>
+<div class="page">
+  <div class="watch-wrap">
+    <div class="strap-top"></div>
+    <div class="strap-bot"></div>
+    <div class="watch">
+      <div class="speaker"></div>
+      <button class="crown" onclick="pressCrown()" title="التاج الرقمي — العودة لواجهة الساعة"></button>
+      <button class="side-btn" onpointerdown="startSideHold(event)" onpointerup="endSideHold(event)" onpointerleave="cancelSideHold()" onpointercancel="cancelSideHold()" title="ضغطة: مركز التحكم · ضغط مطول: استغاثة"></button>
+ 
+      <div class="display" dir="rtl">
+        <div class="status-bar"><span class="status-time">9:41</span></div>
 
-    <div class="watch-case">
-        <!-- Physical Buttons -->
-        <div class="crown" onclick="goHome()" title="Home"></div>
-        <div class="side-btn"></div>
-        <div class="action-btn" onclick="triggerSOS()" title="SOS"></div>
-
-        <!-- Watch Screen -->
-        <div class="watch-screen">
-            <!-- Status Bar -->
-            <div class="status-bar">
-                <span>صحتنا</span>
-                <div class="status-left">
-                    <i class="ph-bold ph-microphone mic-icon" onclick="openRecording()" title="تسجيل صوتي"></i>
-                    <span class="time" id="clock">10:09</span>
-                </div>
-            </div>
-
-            <!-- Main App Container -->
-            <div class="app-container" id="main-view">
-                
-                <div class="home-header">
-                    <i class="ph-fill ph-heartbeat platform-logo"></i>
-                    <h2 style="margin:0; font-size: 16px;">التنبيهات</h2>
-                </div>
-
-                <!-- 1. Medication Reminder (Self) -->
-                <div class="notif-item" onclick="openAlert('med-take')">
-                    <div class="app-icon icon-med"><i class="ph-bold ph-pill"></i></div>
-                    <div class="notif-content">
-                        <div class="notif-title">وقت الدواء</div>
-                        <div class="notif-subtitle">بنادول إكسترا (500mg)</div>
-                        <span class="notif-time">الآن</span>
-                    </div>
-                </div>
-
-                <!-- 2. Missed Med (Proxy) -->
-                <div class="notif-item" onclick="openAlert('med-missed')">
-                    <div class="app-icon icon-alert"><i class="ph-bold ph-warning"></i></div>
-                    <div class="notif-content">
-                        <div class="notif-title">تنبيه عدم أخذ الدواء</div>
-                        <div class="notif-subtitle">الوالد (عبدالله) لم يؤكد الجرعة</div>
-                        <span class="notif-time">منذ 30 دقيقة</span>
-                    </div>
-                </div>
-
-                <!-- 3. Sand Request -->
-                <div class="notif-item" onclick="openAlert('sand-req')">
-                    <div class="app-icon icon-sand"><i class="ph-bold ph-users"></i></div>
-                    <div class="notif-content">
-                        <div class="notif-title">مطلوب مرافق</div>
-                        <div class="notif-subtitle">موعد الوالد في مستشفى الحرس</div>
-                        <span class="notif-time">غداً 09:30 ص</span>
-                    </div>
-                </div>
-
-                <!-- 4. Low Stock -->
-                <div class="notif-item" onclick="openAlert('low-stock')">
-                    <div class="app-icon icon-warn"><i class="ph-bold ph-package"></i></div>
-                    <div class="notif-content">
-                        <div class="notif-title">نفاذ المخزون</div>
-                        <div class="notif-subtitle">Metformin شارف على الانتهاء</div>
-                        <span class="notif-time">يكفي يوم واحد</span>
-                    </div>
-                </div>
-
-                <!-- 5. Appointment Reminder -->
-                <div class="notif-item" onclick="openAlert('apt-soon')">
-                    <div class="app-icon icon-info"><i class="ph-bold ph-calendar-check"></i></div>
-                    <div class="notif-content">
-                        <div class="notif-title">موعد قريب</div>
-                        <div class="notif-subtitle">عيادات الماسة (أسنان)</div>
-                        <span class="notif-time">بعد ساعة</span>
-                    </div>
-                </div>
-
-                <!-- 6. Post Visit -->
-                <div class="notif-item" onclick="openAlert('post-visit')">
-                    <div class="app-icon icon-warn"><i class="ph-bold ph-clipboard-text"></i></div>
-                    <div class="notif-content">
-                        <div class="notif-title">تحديث الملف</div>
-                        <div class="notif-subtitle">انتهى موعد العيون. هل هناك جديد؟</div>
-                        <span class="notif-time">منذ ساعتين</span>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Full Screen Alert Container -->
-            <div id="alert-view" class="full-alert">
-                <!-- Injected via JS -->
-            </div>
-
-            <!-- Toast -->
-            <div id="toast" class="watch-toast">
-                <i class="ph-fill ph-check-circle toast-icon"></i>
-                <span id="toast-msg">تم بنجاح</span>
-            </div>
-
+        <!-- WATCH FACE — first screen -->
+        <div class="view watchface-view" id="face-view" onclick="openApps()" role="button" tabindex="0" aria-label="فتح التطبيقات">
+          <div class="watchface-top">
+            <span class="watchface-battery" aria-label="البطارية 87%">87%</span>
+          </div>
+          <div class="watchface-date" id="face-date">الخميس، ٢٨ مايو</div>
+          <div class="watchface-time"><span id="face-time">09:41</span><span class="watchface-period" id="face-period">م</span></div>
+          <button class="next-med-alert" onclick="event.stopPropagation(); openMyMeds()" aria-label="فتح أدويتي، الدواء القادم">
+            <span class="next-med-alert-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M18.36 5.64a4.5 4.5 0 0 0-6.36 0l-6.36 6.36A4.5 4.5 0 0 0 12 18.36L18.36 12a4.5 4.5 0 0 0 0-6.36ZM8.47 15.53a2.5 2.5 0 0 1 0-3.53l2.12-2.12 3.53 3.53L12 15.53a2.5 2.5 0 0 1-3.53 0Z"/></svg>
+            </span>
+            <span class="next-med-alert-copy">
+              <span class="next-med-alert-label">الدواء القادم</span>
+              <span class="next-med-alert-remaining" id="next-med-remaining">باقي ٣ ساعات و١٩ دقيقة</span>
+            </span>
+          </button>
         </div>
+
+
+        <!-- HOME -->
+        <div class="view" id="home-view" style="display:none;">
+          <div class="honey">
+            <div class="honey-row">
+              <button class="app app-phone"><svg viewBox="0 0 24 24" fill="white"><path d="M19.23 15.26l-2.54-.29a1.5 1.5 0 0 0-1.25.43l-1.84 1.84a14.04 14.04 0 0 1-6.59-6.59l1.85-1.85a1.5 1.5 0 0 0 .43-1.25l-.29-2.52A1.5 1.5 0 0 0 7.5 4H4a1 1 0 0 0-1 1c0 9.39 7.61 17 17 17a1 1 0 0 0 1-1v-3.5a1.5 1.5 0 0 0-1.27-1.24z"/></svg></button>
+              <button class="app app-msg"><svg viewBox="0 0 24 24" fill="white"><path d="M12 3C6.48 3 2 6.58 2 11c0 2.25 1.18 4.27 3.06 5.7L4 21l4.6-2.31c1.04.27 2.18.41 3.4.41 5.52 0 10-3.58 10-8s-4.48-8-10-8z"/></svg></button>
+              <button class="app app-mail"><svg viewBox="0 0 24 24" fill="white"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4l-8 5-8-5V6l8 5 8-5z"/></svg></button>
+              <button class="app app-music"><svg viewBox="0 0 24 24" fill="white"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55a3.5 3.5 0 1 0 3.5 3.5V7h4V3z"/></svg></button>
+            </div>
+            <div class="honey-row honey-offset">
+              <button class="app app-camera"><svg viewBox="0 0 24 24" fill="white"><path d="M9 2L7.17 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3.17L15 2zm3 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/></svg></button>
+              <button class="app app-sehetna" onclick="openSehetna()" title="صحتنا" aria-label="فتح تطبيق صحتنا"><img src="data:image/png;base64,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" alt="" aria-hidden="true"></button>
+              <button class="app app-heart"><svg viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z"/></svg></button>
+            </div>
+            <div class="honey-row">
+              <button class="app app-weather"><svg viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="4"/></svg></button>
+              <button class="app app-fitness"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fa0e50" stroke-width="2.5"/><circle cx="12" cy="12" r="6" fill="none" stroke="#a4f600" stroke-width="2.5"/><circle cx="12" cy="12" r="3" fill="none" stroke="#00deb5" stroke-width="2.5"/></svg></button>
+              <button class="app app-notif-home" onclick="openIncomingAlert(0)" title="تنبيهات واردة" aria-label="عرض معاينات التنبيهات الواردة"><svg viewBox="0 0 256 256" fill="white"><path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216Z"/></svg></button>
+              <button class="app app-podcasts"><svg viewBox="0 0 24 24" fill="white"><circle cx="12" cy="6" r="2"/><path d="M11 11h2v8h-2z"/></svg></button>
+            </div>
+          </div>
+        </div>
+ 
+        <!-- MAIN MENU — 4 sections (vertical snap-scroll, Apple Watch style) -->
+        <div class="view menu-view menu-theme" id="menu-view" style="display:none; flex-direction:column;">
+          <div class="brand-header">
+            <div class="brand-header-right">
+              <button class="brand-mic" onclick="startRecording()" title="تسجيل صوتي">
+                <svg viewBox="0 0 256 256"><path d="M128,176a48.05,48.05,0,0,0,48-48V64a48,48,0,0,0-96,0v64A48.05,48.05,0,0,0,128,176ZM96,64a32,32,0,0,1,64,0v64a32,32,0,0,1-64,0Zm40,143.6V232a8,8,0,0,1-16,0V207.6A80.11,80.11,0,0,1,48,128a8,8,0,0,1,16,0,64,64,0,0,0,128,0,8,8,0,0,1,16,0A80.11,80.11,0,0,1,136,207.6Z"/></svg>
+              </button>
+              <span class="brand-name">صحتنا</span>
+            </div>
+            <span class="brand-time">9:41</span>
+          </div>
+ 
+          <!-- Side dot indicator (stays fixed while content scrolls) -->
+          <div class="v-side-dots" id="menu-side-dots">
+            <div class="v-dot active"></div>
+            <div class="v-dot"></div>
+            <div class="v-dot"></div>
+            <div class="v-dot"></div>
+          </div>
+ 
+          <!-- Vertical snap-scroll container -->
+          <div class="v-snap-container" id="menu-snap">
+            <div class="v-snap-section">
+              <button class="menu-card-btn" onclick="openMeds()">
+                <div class="menu-card-circle menu-c-meds"><svg viewBox="0 0 256 256"><path d="M215.49,40.51a59.94,59.94,0,0,0-84.86,0L40.51,130.63a60,60,0,0,0,84.86,84.86l90.12-90.12a59.94,59.94,0,0,0,0-84.86Zm-96.86,52.2L165.94,140H94.06L51.83,182.23A44,44,0,0,1,73.31,108L96,85.27,118.63,107.9a8,8,0,0,0,11.31-11.31L107.31,74,141.94,39.31a44,44,0,0,1,62.23,62.23L181.94,123.71l-22.63-22.62a8,8,0,0,0-11.31,11.31Z"/></svg></div>
+                <div class="menu-card-label">الأدوية</div>
+              </button>
+            </div>
+            <div class="v-snap-section">
+              <button class="menu-card-btn" onclick="openAppts()">
+                <div class="menu-card-circle menu-c-appts"><svg viewBox="0 0 256 256"><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM48,80V48H72v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80ZM208,208H48V96H208Z"/></svg></div>
+                <div class="menu-card-label">المواعيد</div>
+              </button>
+            </div>
+            <div class="v-snap-section">
+              <button class="menu-card-btn" onclick="openInventory()">
+                <div class="menu-card-circle menu-c-inv"><svg viewBox="0 0 256 256"><path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.65a16,16,0,0,0,8.32,14L120.32,238a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44L128,120,47.66,76ZM40,90l80,43.78v85.79L40,175.82Zm176,85.78L136,219.57V133.82L216,90Z"/></svg></div>
+                <div class="menu-card-label">المخزون</div>
+              </button>
+            </div>
+            <div class="v-snap-section">
+              <button class="menu-card-btn" onclick="openDocs()">
+                <div class="menu-card-circle menu-c-docs"><svg viewBox="0 0 256 256"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Z"/></svg></div>
+                <div class="menu-card-label">المستندات</div>
+              </button>
+            </div>
+          </div>
+        </div>
+ 
+        <!-- MEDS -->
+        <div class="view meds-theme" id="meds-view" style="display:none; flex-direction:column;">
+          <div class="brand-header">
+            <div class="brand-header-right">
+              <button class="brand-mic" onclick="startRecording()" title="تسجيل صوتي">
+                <svg viewBox="0 0 256 256"><path d="M128,176a48.05,48.05,0,0,0,48-48V64a48,48,0,0,0-96,0v64A48.05,48.05,0,0,0,128,176ZM96,64a32,32,0,0,1,64,0v64a32,32,0,0,1-64,0Zm40,143.6V232a8,8,0,0,1-16,0V207.6A80.11,80.11,0,0,1,48,128a8,8,0,0,1,16,0,64,64,0,0,0,128,0,8,8,0,0,1,16,0A80.11,80.11,0,0,1,136,207.6Z"/></svg>
+              </button>
+              <span class="brand-name">صحتنا</span>
+            </div>
+            <span class="brand-time">9:41</span>
+          </div>
+          <div class="app-header">
+            <button class="back-btn" onclick="backToMenu()">‹</button>
+            <div class="app-title context-app-title" id="meds-title">أدويتي</div>
+          </div>
+          <div class="h-pages" id="meds-pages"></div>
+          <div class="h-dots" id="meds-dots"></div>
+        </div>
+ 
+        <!-- APPTS -->
+        <div class="view appts-theme" id="appts-view" style="display:none; flex-direction:column;">
+          <div class="brand-header">
+            <div class="brand-header-right">
+              <button class="brand-mic" onclick="startRecording()" title="تسجيل صوتي">
+                <svg viewBox="0 0 256 256"><path d="M128,176a48.05,48.05,0,0,0,48-48V64a48,48,0,0,0-96,0v64A48.05,48.05,0,0,0,128,176ZM96,64a32,32,0,0,1,64,0v64a32,32,0,0,1-64,0Zm40,143.6V232a8,8,0,0,1-16,0V207.6A80.11,80.11,0,0,1,48,128a8,8,0,0,1,16,0,64,64,0,0,0,128,0,8,8,0,0,1,16,0A80.11,80.11,0,0,1,136,207.6Z"/></svg>
+              </button>
+              <span class="brand-name">صحتنا</span>
+            </div>
+            <span class="brand-time">9:41</span>
+          </div>
+          <div class="app-header">
+            <button class="back-btn" onclick="backToMenu()">‹</button>
+            <div class="app-title context-app-title" id="appts-title">مواعيدي</div>
+          </div>
+          <div class="h-pages" id="appts-pages"></div>
+          <div class="h-dots" id="appts-dots"></div>
+        </div>
+ 
+        <!-- INVENTORY -->
+        <div class="view inv-theme" id="inventory-view" style="display:none; flex-direction:column;">
+          <div class="brand-header">
+            <div class="brand-header-right">
+              <button class="brand-mic" onclick="startRecording()" title="تسجيل صوتي">
+                <svg viewBox="0 0 256 256"><path d="M128,176a48.05,48.05,0,0,0,48-48V64a48,48,0,0,0-96,0v64A48.05,48.05,0,0,0,128,176ZM96,64a32,32,0,0,1,64,0v64a32,32,0,0,1-64,0Zm40,143.6V232a8,8,0,0,1-16,0V207.6A80.11,80.11,0,0,1,48,128a8,8,0,0,1,16,0,64,64,0,0,0,128,0,8,8,0,0,1,16,0A80.11,80.11,0,0,1,136,207.6Z"/></svg>
+              </button>
+              <span class="brand-name">صحتنا</span>
+            </div>
+            <span class="brand-time">9:41</span>
+          </div>
+          <div class="app-header">
+            <button class="back-btn" onclick="backToMenu()">‹</button>
+            <div class="app-title context-app-title" id="inventory-title">مخزوني</div>
+          </div>
+          <div class="h-pages" id="inv-pages"></div>
+          <div class="h-dots" id="inv-dots"></div>
+        </div>
+ 
+        <!-- ───── DOCUMENTS VIEW ───── -->
+        <div class="view docs-theme" id="docs-view" style="display:none; flex-direction:column;">
+          <div class="brand-header">
+            <div class="brand-header-right">
+              <button class="brand-mic" onclick="startRecording()" title="تسجيل صوتي">
+                <svg viewBox="0 0 256 256"><path d="M128,176a48.05,48.05,0,0,0,48-48V64a48,48,0,0,0-96,0v64A48.05,48.05,0,0,0,128,176ZM96,64a32,32,0,0,1,64,0v64a32,32,0,0,1-64,0Zm40,143.6V232a8,8,0,0,1-16,0V207.6A80.11,80.11,0,0,1,48,128a8,8,0,0,1,16,0,64,64,0,0,0,128,0,8,8,0,0,1,16,0A80.11,80.11,0,0,1,136,207.6Z"/></svg>
+              </button>
+              <span class="brand-name">صحتنا</span>
+            </div>
+            <span class="brand-time">9:41</span>
+          </div>
+          <div class="app-header">
+            <button class="back-btn" onclick="backToMenu()">‹</button>
+            <div class="app-title">المستندات</div>
+          </div>
+          <div class="v-scroll" id="docs-list"></div>
+        </div>
+ 
+        <!-- ───── RECORDING OVERLAY ───── -->
+        <div class="record-overlay" id="record-overlay">
+          <div class="record-status">جاري التسجيل</div>
+          <div class="waveform">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+          </div>
+          <div class="record-timer" id="record-timer">00:00</div>
+          <button class="record-stop-btn" onclick="stopRecording()" title="إيقاف"></button>
+        </div>
+
+        <!-- EMERGENCY SOS — hold the side button -->
+        <div class="sos-overlay" id="sos-overlay">
+          <div id="sos-options">
+            <div class="sos-header">
+              <div class="sos-header-title">الطوارئ</div>
+              <button class="sos-close-btn" onclick="closeSOS()" aria-label="إغلاق">×</button>
+            </div>
+            <div class="sos-medical-row">
+              <div class="sos-medical-ic">✚</div>
+              <div><div class="sos-medical-label">الهوية الطبية</div><div class="sos-medical-sub">عرض بيانات المريض الأساسية</div></div>
+            </div>
+            <button class="sos-call-slider" onclick="startSOSCountdown()" aria-label="مكالمة طوارئ">
+              <span class="sos-slider-knob"><svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.7 3.3 3.4 5 6.7 6.7l2.2-2.2c.3-.3.8-.4 1.2-.2 1.2.4 2.4.6 3.7.6.7 0 1.2.5 1.2 1.2v3.5c0 .7-.5 1.2-1.2 1.2C10.2 21.6 2.4 13.8 2.4 3.7c0-.7.5-1.2 1.2-1.2h3.5c.7 0 1.2.5 1.2 1.2 0 1.3.2 2.5.6 3.7.1.4 0 .9-.3 1.2l-2 2.2z"/></svg></span>
+              <span class="sos-slider-txt">مكالمة طوارئ<div class="sos-slider-hint">اضغط لمحاكاة السحب</div></span>
+            </button>
+          </div>
+          <div class="sos-countdown" id="sos-countdown">
+            <div class="sos-countdown-title">بدء مكالمة الطوارئ خلال</div>
+            <div class="sos-countdown-num" id="sos-count-num">5</div>
+            <div class="sos-countdown-note">محاكاة فقط — لن يتم إجراء اتصال فعلي من النموذج</div>
+            <button class="sos-countdown-cancel" onclick="cancelSOSCountdown()">إلغاء</button>
+          </div>
+        </div>
+
+        <!-- NOTIFICATION OVERLAY -->
+        <div class="notif-overlay" id="notif-overlay"></div>
+ 
+        <!-- CONFIRMATION OVERLAY -->
+        <div class="confirmation" id="confirmation"></div>
+ 
+        <!-- CONTROL CENTER -->
+        <div class="control-center" id="control-center" dir="rtl">
+          <div class="cc-header">
+            <div class="cc-battery-wrap"><div class="cc-battery-icon"><div class="cc-battery-fill"></div></div><span class="cc-battery-text">87%</span></div>
+            <button class="cc-close" onclick="toggleCC()">×</button>
+          </div>
+          <div class="cc-grid">
+            <button class="cc-btn" data-active="true" onclick="toggleBtn(this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zM3 9v6h4l5 5V4L7 9H3z"/></svg></button>
+            <button class="cc-btn" onclick="toggleBtn(this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.05 8.05 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05z"/></svg></button>
+            <button class="cc-btn" onclick="toggleBtn(this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></button>
+            <button class="cc-btn" data-active="true" onclick="toggleBtn(this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-5 5-7 8-7 11a7 7 0 0 0 14 0c0-3-2-6-7-11z"/></svg></button>
+            <button class="cc-btn" onclick="toggleBtn(this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 3H3c-1.11 0-2 .89-2 2v12c0 1.1.89 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.11-.9-2-2-2z"/></svg></button>
+            <button class="cc-btn" onclick="toggleBtn(this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg></button>
+          </div>
+        </div>
+ 
+      </div>
     </div>
+  </div>
+</div>
+ 
+<script>
+  // ───── DATA: نفس شخصيات منصة صحتنا ─────
+  const PEOPLE = [
+    { key: 'me',       name: 'سارة (أنا)',       short: 'سارة',    rel: 'حسابي',          letter: 'س', color: '#DB2777' },
+    { key: 'father',   name: 'الوالد (عبدالله)', short: 'عبدالله', rel: 'الوالد · مساند', letter: 'ا', color: '#2563EB' },
+    { key: 'bro',      name: 'أحمد (الأخ)',      short: 'أحمد',    rel: 'الأخ · مساند',   letter: 'ا', color: '#14593C' },
+    { key: 'mother',   name: 'نورة (الوالدة)',   short: 'نورة',    rel: 'الوالدة · مساند',letter: 'ن', color: '#E11D48' },
+    { key: 'daughter', name: 'ليلى (الابنة)',    short: 'ليلى',    rel: 'الابنة',         letter: 'ل', color: '#E11D48' }
+  ];
 
-    <!-- Instructions -->
-    <div style="position: absolute; bottom: 20px; text-align: center; color: #666; font-size: 14px;">
-        <p>محاكاة Apple Watch Ultra</p>
-        <p>انقر على الميكروفون للتسجيل • الزر البرتقالي للطوارئ</p>
-    </div>
+  const medsByPerson = {
+    me: [
+      { time: '8:00 ص', name: 'بانادول 500', dose: 'بعد الفطور', taken: true },
+      { time: '1:00 م', name: 'فيتامين D', dose: 'حبة واحدة', taken: false },
+      { time: '9:00 م', name: 'أملوديبين 5', dose: 'لضغط الدم', taken: false }
+    ],
+    father: [
+      { time: '7:00 ص', name: 'أسبرين 81', dose: 'مسيّل دم', taken: true },
+      { time: '1:00 م', name: 'لازكس 40', dose: 'مدر بول', taken: false },
+      { time: '8:00 م', name: 'وارفارين', dose: 'حبة', taken: false }
+    ],
+    bro: [
+      { time: '9:00 ص', name: 'فيتامين C', dose: 'حبة واحدة', taken: true },
+      { time: '7:00 م', name: 'بروفين 400', dose: 'بعد الأكل', taken: false }
+    ],
+    mother: [
+      { time: '8:30 ص', name: 'ليفوثيروكسين', dose: 'قبل الفطور', taken: true },
+      { time: '9:00 م', name: 'كالسيوم', dose: 'حبة واحدة', taken: false }
+    ],
+    daughter: [
+      { time: '7:30 ص', name: 'فيتامينات أطفال', dose: 'حبة مضغ', taken: false }
+    ]
+  };
 
-    <script>
-        // Update Clock
-        function updateTime() {
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('clock').innerText = `${hours}:${minutes}`;
+  const apptsByPerson = {
+    me:       { date: 'اليوم — الخميس 30 أبريل', hospital: 'مستشفى الملك فيصل التخصصي', dept: 'نساء وولادة', time: '9:30 ص' },
+    father:   { date: 'اليوم — الخميس 30 أبريل', hospital: 'مستشفى الأمير سلطان', dept: 'أمراض القلب', time: '11:00 ص' },
+    bro:      { date: 'السبت 2 مايو', hospital: 'مجمع إرادة', dept: 'طب عام', time: '5:00 م' },
+    mother:   { date: 'الأحد 3 مايو', hospital: 'مستشفى الحرس', dept: 'الباطنة', time: '10:00 ص' },
+    daughter: { date: 'الاثنين 4 مايو', hospital: 'مركز صحي الروضة', dept: 'الأطفال', time: '8:30 ص' }
+  };
+
+  const inventoryByPerson = {
+    me: [
+      { name: 'ميتفورمين 500', current: 4, total: 60, days: 4, low: true },
+      { name: 'فيتامين D', current: 18, total: 30, days: 18, low: false },
+      { name: 'أملوديبين 5', current: 22, total: 30, days: 22, low: false }
+    ],
+    father: [
+      { name: 'وارفارين', current: 5, total: 30, days: 5, low: true },
+      { name: 'أسبرين 81', current: 12, total: 30, days: 12, low: false },
+      { name: 'أنسولين', current: 18, total: 30, days: 9, low: false }
+    ],
+    bro: [
+      { name: 'فيتامين C', current: 16, total: 30, days: 16, low: false },
+      { name: 'بروفين 400', current: 6, total: 20, days: 6, low: true }
+    ],
+    mother: [
+      { name: 'ليفوثيروكسين', current: 14, total: 30, days: 14, low: false },
+      { name: 'كالسيوم', current: 8, total: 30, days: 8, low: false }
+    ],
+    daughter: [
+      { name: 'فيتامينات أطفال', current: 11, total: 30, days: 11, low: false }
+    ]
+  };
+
+  const SECTION_LABELS = {
+    meds: 'أدوية',
+    appts: 'مواعيد',
+    inventory: 'مخزون'
+  };
+
+  function contextualSectionTitle(sectionKey, person) {
+    if (person.key === 'me') {
+      return { meds: 'أدويتي', appts: 'مواعيدي', inventory: 'مخزوني' }[sectionKey];
+    }
+    return `${SECTION_LABELS[sectionKey]} ${person.short}`;
+  }
+
+  function updateSectionTitle(sectionKey, person) {
+    const title = document.getElementById(`${sectionKey}-title`);
+    if (!title) return;
+    title.innerHTML = `<span class="context-dot" style="background:${person.color}"></span>${contextualSectionTitle(sectionKey, person)}`;
+  }
+
+  function renderDots(dotsId) {
+    document.getElementById(dotsId).innerHTML = PEOPLE.map((_, i) =>
+      `<span class="dot ${i === 0 ? 'active' : ''}"></span>`
+    ).join('');
+  }
+
+  function bindPageDots(containerId, dotsId, sectionKey) {
+    const container = document.getElementById(containerId);
+    const pages = container.querySelectorAll('.h-page');
+    const dots = document.querySelectorAll(`#${dotsId} .dot`);
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.intersectionRatio >= 0.6) {
+          const index = Array.from(pages).indexOf(entry.target);
+          if (index < 0) return;
+          dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+          updateSectionTitle(sectionKey, PEOPLE[index]);
         }
-        setInterval(updateTime, 1000);
-        updateTime();
+      });
+    }, { root: container, threshold: 0.6 });
+    pages.forEach(page => observer.observe(page));
+  }
 
-        // Recording Logic Variables
-        let recInterval;
-        let recSeconds = 0;
-        let isPaused = false;
+  function renderPeoplePages(containerId, dotsId, sectionKey, renderBody) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = PEOPLE.map(person => `
+      <div class="h-page family-page" aria-label="${contextualSectionTitle(sectionKey, person)}">
+        <div class="v-scroll">${renderBody(person)}</div>
+      </div>`).join('');
+    renderDots(dotsId);
+    updateSectionTitle(sectionKey, PEOPLE[0]);
+    bindPageDots(containerId, dotsId, sectionKey);
+  }
 
-        // Data for Alerts
-        const alertsData = {
-            'med-take': {
-                icon: 'ph-pill', color: '#34C759', title: 'وقت الدواء',
-                desc: 'حان موعد أخذ <b>بنادول إكسترا 500mg</b> (حبتين).',
-                actions: [
-                    { text: 'تأكيد الأخذ', class: 'btn-primary', action: "showToast('خطوة قريبة نحو صحة أفضل')" },
-                    { text: 'تذكير لاحقاً', class: 'btn-secondary', action: "showToast('نلتقي بعد قليل', 'warning')" },
-                    { text: 'تخطي', class: 'btn-secondary', action: 'closeAlert()' }
-                ]
-            },
-            'med-missed': {
-                icon: 'ph-warning', color: '#FF3B30', title: 'تحذير طبي',
-                desc: 'الوالد (عبدالله) لم يؤكد أخذ دواء الضغط المستحق منذ 30 دقيقة.',
-                actions: [
-                    { text: 'اتصال بالمريض', class: 'btn-primary', action: "showToast('جاري الاتصال...')" },
-                    { text: 'أخذ نيابة عنه', class: 'btn-secondary', action: "showToast('تم تسجيل الجرعة عن المريض')" }
-                ]
-            },
-            'sand-req': {
-                icon: 'ph-users', color: '#AF52DE', title: 'طلب مساندة',
-                desc: 'موعد الوالد في <b>مستشفى الحرس</b> غداً يحتاج إلى مرافق.',
-                actions: [
-                    { text: 'أنا سأرافقه', class: 'btn-primary', action: "showToast('تم تسجيلك كمرافق')" },
-                    { text: 'اعتذار', class: 'btn-secondary', action: "showToast('تم إرسال الاعتذار')" }
-                ]
-            },
-            'low-stock': {
-                icon: 'ph-package', color: '#FF9500', title: 'نفاذ المخزون',
-                desc: 'دواء Metformin للوالد شارف على الانتهاء. المتبقي يكفي ليوم واحد.',
-                actions: [
-                    { text: 'إضافة لقائمة الشراء', class: 'btn-primary', action: "showToast('تمت الإضافة للقائمة')" },
-                    { text: 'تجاهل', class: 'btn-secondary', action: 'closeAlert()' }
-                ]
-            },
-            'apt-soon': {
-                icon: 'ph-car', color: '#0A84FF', title: 'موعد قريب',
-                desc: 'موعد الأسنان في عيادات الماسة يبدأ خلال ساعة. الطريق يستغرق 20 دقيقة.',
-                actions: [
-                    { text: 'فتح الخرائط', class: 'btn-primary', action: "showToast('فتح Google Maps...')" },
-                    { text: 'تفاصيل الموعد', class: 'btn-secondary', action: 'showAppointmentDetails()', keepOpen: true }
-                ]
-            },
-            'post-visit': {
-                icon: 'ph-clipboard-text', color: '#FF9500', title: 'متابعة زيارة',
-                desc: 'انتهى موعد العيون. هل صرف الطبيب أدوية جديدة؟',
-                actions: [
-                    { text: 'نعم، إضافة دواء', class: 'btn-primary', action: "showToast('فتح نموذج الإضافة على الجوال')" },
-                    { text: 'لا، تحديث الحالة', class: 'btn-secondary', action: 'closeAlert()' }
-                ]
-            }
-        };
+  function renderMeds() {
+    renderPeoplePages('meds-pages', 'meds-dots', 'meds', person => medContent(medsByPerson[person.key], person.key));
+  }
 
-        // Functions
-        function openAlert(id) {
-            const data = alertsData[id];
-            const view = document.getElementById('alert-view');
-            
-            view.innerHTML = `
-                <div class="dismiss-btn" onclick="closeAlert()"><i class="ph-bold ph-x"></i></div>
-                <div class="fa-header">
-                    <div class="fa-icon" style="background: ${data.color}20; color: ${data.color}">
-                        <i class="ph-fill ${data.icon}"></i>
-                    </div>
-                    <div class="fa-title">${data.title}</div>
-                    <div class="fa-desc">${data.desc}</div>
-                </div>
-                <div class="fa-actions">
-                    ${data.actions.map(btn => `
-                        <button class="watch-btn ${btn.class}" onclick="${btn.action}; ${btn.keepOpen ? '' : 'setTimeout(closeAlert, 500)'}">
-                            ${btn.text}
-                        </button>
-                    `).join('')}
-                </div>
-            `;
-            
-            view.classList.add('active');
-        }
+  function medContent(list, personKey) {
+    const pending = list.filter(m => !m.taken);
+    const taken = list.filter(m => m.taken);
+    const next = pending[0];
+    let out = '';
+    if (next) {
+      out += `<div class="hero hero-meds">
+        <div class="hero-label">التذكير القادم</div>
+        <div class="hero-time">${next.time}</div>
+        <div class="hero-name">${next.name} — ${next.dose}</div>
+      </div>`;
+    }
+    if (pending.length) {
+      out += `<div class="section-label">باقي اليوم · ${pending.length}</div>`;
+      list.forEach((m, idx) => { if (!m.taken) out += medRow(m, idx, personKey); });
+    }
+    if (taken.length) {
+      out += `<div class="section-label">تم اليوم · ${taken.length}</div>`;
+      list.forEach((m, idx) => { if (m.taken) out += medRow(m, idx, personKey); });
+    }
+    return out;
+  }
 
-        // Modified showToast to accept type
-        function showToast(msg, type = 'success') {
-            const t = document.getElementById('toast');
-            const icon = t.querySelector('.toast-icon');
-            const msgEl = document.getElementById('toast-msg');
-            
-            msgEl.innerText = msg;
-            
-            // Icon handling
-            icon.className = 'ph-fill toast-icon'; // Reset
-            icon.style.color = ''; // Reset inline color
+  function medRow(m, idx, personKey) {
+    return `<div class="med-item ${m.taken ? 'taken' : ''}" onclick="toggleMed('${personKey}', ${idx})">
+      <div class="med-time-badge">${m.time}</div>
+      <div class="med-info">
+        <div class="med-name">${m.name}</div>
+        <div class="med-dose">${m.dose}</div>
+      </div>
+      <div class="med-check"><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+    </div>`;
+  }
 
-            if (type === 'warning') {
-                icon.classList.add('ph-clock');
-                icon.style.color = 'var(--warning-color)';
-            } else {
-                icon.classList.add('ph-check-circle');
-                icon.style.color = 'var(--accent-color)';
-            }
+  function toggleMed(personKey, idx) {
+    medsByPerson[personKey][idx].taken = !medsByPerson[personKey][idx].taken;
+    renderMeds();
+  }
 
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2000);
-        }
+  function renderAppts() {
+    renderPeoplePages('appts-pages', 'appts-dots', 'appts', person => apptContent(apptsByPerson[person.key]));
+  }
 
-        function showAppointmentDetails() {
-            const view = document.getElementById('alert-view');
-            view.innerHTML = `
-                <div style="width: 100%; height: 100%; display: flex; flex-direction: column;">
-                    <!-- Nav Bar -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px;">
-                        <div onclick="closeAlert()" style="display: flex; align-items: center; gap: 4px; color: var(--accent-color); cursor: pointer;">
-                            <i class="ph-bold ph-caret-right"></i>
-                            <span style="font-size: 14px;">عودة</span>
-                        </div>
-                        <span style="font-size: 15px; font-weight: 600;">الموعد</span>
-                        <div style="width: 40px;"></div> <!-- Spacer -->
-                    </div>
+  function apptContent(a) {
+    return `<div class="hero hero-appts">
+      <div class="hero-label">الموعد القادم</div>
+      <div class="hero-time">${a.time}</div>
+      <div class="hero-name">${a.hospital}</div>
+      <div class="hero-sub">${a.dept} · ${a.date}</div>
+    </div>`;
+  }
 
-                    <!-- Content (Compact & No Scroll) -->
-                    <div style="flex: 1; display: flex; flex-direction: column; gap: 8px; overflow: hidden;">
-                        
-                        <!-- Header -->
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-                            <div style="width: 36px; height: 36px; background: rgba(10, 132, 255, 0.2); color: #0A84FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="ph-fill ph-hospital" style="font-size: 18px;"></i>
-                            </div>
-                            <div>
-                                <div style="font-size: 15px; font-weight: 700; line-height: 1.2;">مستشفى الحرس</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">العيادات الخارجية</div>
-                            </div>
-                        </div>
+  function renderInventory() {
+    renderPeoplePages('inv-pages', 'inv-dots', 'inventory', person => invContent(inventoryByPerson[person.key]));
+  }
 
-                        <!-- Info Group -->
-                        <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 0 10px; display: flex; flex-direction: column;">
-                            
-                            <!-- Row 1 -->
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <span style="color: var(--text-secondary); font-size: 13px;">العيادة</span>
-                                <span style="font-size: 13px; font-weight: 500;">الماسة (أسنان)</span>
-                            </div>
+  function invContent(list) {
+    const sorted = [...list].sort((a, b) => a.days - b.days);
+    const lowCount = list.filter(i => i.low).length;
+    let out = '';
+    if (lowCount > 0) {
+      const c = sorted.find(i => i.low);
+      out += `<div class="hero hero-warn">
+        <div class="hero-label">⚠ مخزون منخفض</div>
+        <div class="hero-time" style="font-size:20px;">${c.name}</div>
+        <div class="hero-name">يكفي ${c.days} أيام فقط</div>
+      </div>`;
+    }
+    out += `<div class="section-label">جميع الأدوية · ${list.length}</div>`;
+    sorted.forEach(item => {
+      const pct = (item.current / item.total) * 100;
+      const cls = item.low ? '' : (pct > 50 ? 'high' : '');
+      out += `<div class="inv-card ${item.low ? 'low' : ''}">
+        <div class="inv-row">
+          <div class="inv-name">${item.name}</div>
+          <div class="inv-qty">${item.current}/${item.total}</div>
+        </div>
+        <div class="inv-bar-track"><div class="inv-bar-fill ${cls}" style="width:${pct}%"></div></div>
+        <div class="inv-days">${item.low ? '⚠ يكفي ' : 'يكفي '}${item.days} أيام</div>
+      </div>`;
+    });
+    return out;
+  }
 
-                            <!-- Row 2 -->
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <span style="color: var(--text-secondary); font-size: 13px;">الوقت</span>
-                                <span style="font-size: 13px; font-weight: 500;">11:30 ص - اليوم</span>
-                            </div>
+  // ───── DOCUMENTS / RECORDINGS ─────
+  // Sample existing documents in the user's records
+  let documents = [
+    { name: "تقرير زيارة طبيب القلب", date: "أمس", duration: "1:24", isNew: false },
+    { name: "وصفة الدكتور خالد",       date: "27 أبريل", duration: "0:42", isNew: false }
+  ];
+ 
+  function renderDocs() {
+    const list = document.getElementById('docs-list');
+    if (documents.length === 0) {
+      list.innerHTML = `
+        <div class="doc-empty">
+          <div class="doc-empty-icon">🎙️</div>
+          <div class="doc-empty-text">
+            لا توجد مستندات بعد<br>
+            اضغط أيقونة المايك لتسجيل مذكّرة صوتية
+          </div>
+        </div>`;
+      return;
+    }
+    let html = '';
+    documents.forEach((d, i) => {
+      html += `<div class="doc-item ${d.isNew ? 'new' : ''}">
+        <div class="doc-icon">
+          <svg viewBox="0 0 256 256"><path d="M128,176a48.05,48.05,0,0,0,48-48V64a48,48,0,0,0-96,0v64A48.05,48.05,0,0,0,128,176Z"/></svg>
+        </div>
+        <div class="doc-info">
+          <div class="doc-name">${d.name}</div>
+          <div class="doc-meta">${d.date} · ${d.duration}</div>
+        </div>
+        <button class="doc-play" onclick="playDoc(${i})" title="تشغيل">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+      </div>`;
+    });
+    list.innerHTML = html;
+  }
+ 
+  function playDoc(i) {
+    // Visual feedback only; in real app this would play the audio
+    const btn = document.querySelectorAll('.doc-play')[i];
+    if (!btn) return;
+    btn.style.background = 'var(--c-meds)';
+    setTimeout(() => btn.style.background = '', 400);
+  }
+ 
+  // ───── RECORDING LOGIC ─────
+  let recordingTimer = null;
+  let recordingSeconds = 0;
+ 
+  function startRecording() {
+    recordingSeconds = 0;
+    updateRecordingTimer();
+    document.getElementById('record-overlay').classList.add('active');
+    recordingTimer = setInterval(() => {
+      recordingSeconds++;
+      updateRecordingTimer();
+    }, 1000);
+  }
+ 
+  function updateRecordingTimer() {
+    const m = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
+    const s = String(recordingSeconds % 60).padStart(2, '0');
+    document.getElementById('record-timer').textContent = `${m}:${s}`;
+  }
+ 
+  function stopRecording() {
+    clearInterval(recordingTimer);
+    document.getElementById('record-overlay').classList.remove('active');
+ 
+    // Save the new recording as a document
+    const m = String(Math.floor(recordingSeconds / 60)).padStart(1, '0');
+    const s = String(recordingSeconds % 60).padStart(2, '0');
+    const duration = `${m}:${s}`;
+    const date = "الآن";
+    const num = documents.filter(d => d.name.startsWith('تسجيل')).length + 1;
+ 
+    // Clear "new" flag from previous documents
+    documents.forEach(d => d.isNew = false);
+ 
+    // Add new recording at the top
+    documents.unshift({
+      name: `تسجيل ${num}`,
+      date: date,
+      duration: duration,
+      isNew: true
+    });
+ 
+    // Navigate to Documents view automatically so user sees the result
+    showView('docs');
+  }
 
-                            <!-- Row 3 -->
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
-                                <span style="color: var(--text-secondary); font-size: 13px;">الطبيب</span>
-                                <span style="font-size: 13px; font-weight: 500;">د. محمد الفهد</span>
-                            </div>
-                        </div>
+  // ───── INCOMING NOTIFICATION PREVIEWS — fixed screens, family-aware ─────
+  const ALERT_PEOPLE = {
+    me:       { name: 'سارة (أنا)',       rel: 'أنا',            letter: 'س', color: '#DB2777' },
+    father:   { name: 'الوالد (عبدالله)', rel: 'الوالد · مساند', letter: 'ا', color: '#2563EB' },
+    bro:      { name: 'أحمد (الأخ)',      rel: 'أخ · مساند',     letter: 'ا', color: '#14593C' },
+    mother:   { name: 'نورة (الوالدة)',   rel: 'الوالدة · مساند',letter: 'ن', color: '#E11D48' },
+    daughter: { name: 'ليلى (الابنة)',    rel: 'ابنة',           letter: 'ل', color: '#E11D48' }
+  };
 
-                        <!-- Note -->
-                         <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; display: flex; align-items: center; gap: 8px;">
-                            <i class="ph-fill ph-info" style="color: var(--warning-color); font-size: 16px;"></i>
-                            <div style="font-size: 12px; line-height: 1.3;">يرجى الحضور قبل الموعد بـ 15 دقيقة</div>
-                        </div>
+  const incomingAlerts = [
+    {
+      person: 'me', type: 'دواء', when: 'الآن',
+      label: 'حان موعد دوائك',
+      primary: 'فيتامين D', highlight: '1:00 م',
+      secondary: 'حبة واحدة بعد الطعام',
+      actions: [
+        { label: 'تم الأخذ', kind: 'primary', confirm: 'taken-me' },
+        { label: 'ذكرني لاحقا', kind: '', confirm: 'remind-me' }
+      ]
+    },
+    {
+      person: 'father', type: 'عاجل', when: 'منذ 30 د', urgent: true,
+      label: 'جرعة لم تسجل',
+      primary: 'لازكس 40', highlight: '1:00 م',
+      secondary: 'الوالد (عبدالله)',
+      warning: 'لم يتم تسجيل أخذ الدواء حتى الآن.',
+      actions: [
+        { label: 'تم الأخذ', kind: 'urgent-primary', confirm: 'taken-father' },
+        { label: 'ذكرني بعد 15 د', kind: '', confirm: 'remind-father' }
+      ]
+    },
+    {
+      person: 'mother', type: 'موعد', when: 'غدا', layout: 'details',
+      label: 'موعد نورة القادم',
+      details: [['التخصص', 'الباطنة'], ['الموقع', 'مستشفى الحرس'], ['التاريخ', 'الأحد 3 مايو'], ['الوقت', '10:00 ص']],
+      actions: [
+        { label: 'ذكرني بالموعد', kind: 'primary', confirm: 'remind-mother' },
+        { label: 'إغلاق', kind: '', confirm: 'close-alert' }
+      ]
+    },
+    {
+      person: 'father', type: 'مرافق', when: 'اليوم', layout: 'details',
+      label: 'الوالد يحتاج مرافق',
+      details: [['التخصص', 'أمراض القلب'], ['الموقع', 'مستشفى الأمير سلطان'], ['التاريخ', 'الخميس 30 أبريل'], ['الوقت', '11:00 ص']],
+      actions: [
+        { label: 'سأرافقه', kind: 'primary', confirm: 'escort-father' },
+        { label: 'لا أستطيع', kind: '', confirm: 'escort-unavailable' }
+      ]
+    },
+    {
+      person: 'bro', type: 'مخزون', when: 'اليوم',
+      label: 'مخزون منخفض',
+      primary: 'بروفين 400', highlight: '6 أيام',
+      secondary: 'الكمية المتبقية تحتاج متابعة',
+      actions: [
+        { label: 'تمت المتابعة', kind: 'primary', confirm: 'stock-bro' },
+        { label: 'ذكرني لاحقا', kind: '', confirm: 'stock-later' }
+      ]
+    },
+    {
+      person: 'daughter', type: 'موعد', when: 'الاثنين', layout: 'details',
+      label: 'موعد ليلى القادم',
+      details: [['التخصص', 'عيادة الأطفال'], ['الموقع', 'مركز صحي الروضة'], ['التاريخ', 'الاثنين 4 مايو'], ['الوقت', '8:30 ص']],
+      actions: [
+        { label: 'ذكرني بالموعد', kind: 'primary', confirm: 'remind-daughter' },
+        { label: 'إغلاق', kind: '', confirm: 'close-alert' }
+      ]
+    },
+    {
+      person: 'father', type: 'حالة الموعد', when: 'الآن',
+      label: 'بدأت الزيارة',
+      primary: 'غرفة 312', highlight: '',
+      secondary: 'د. خالد العمري · أمراض القلب',
+      details: [['المريض', 'الوالد (عبدالله)'], ['الموقع', 'مستشفى الأمير سلطان']],
+      actions: [{ label: 'إغلاق', kind: 'primary', confirm: 'close-alert' }]
+    },
+    {
+      person: 'me', type: 'مستند', when: 'اليوم',
+      label: 'نتيجة جديدة',
+      primary: 'تحليل الدم', highlight: '',
+      secondary: 'أضيفت النتيجة إلى ملفك الطبي',
+      actions: [{ label: 'فتح المستند', kind: 'primary', confirm: 'document-me' }]
+    }
+  ];
 
-                    </div>
-                </div>
-            `;
-            view.classList.add('active');
-        }
+  const confirms = {
+    'taken-me':       { title: 'تم التسجيل', msg: 'تم تسجيل جرعة فيتامين D لسارة.', meta: 'اليوم · 1:00 م' },
+    'remind-me':      { title: 'تم ضبط التذكير', msg: 'سيصلك تذكير جديد بالدواء.', meta: 'بعد 10 دقائق' },
+    'taken-father':   { title: 'تمت المتابعة', msg: 'تم تسجيل جرعة الوالد (عبدالله).', meta: 'لازكس 40' },
+    'remind-father':  { title: 'تم ضبط التذكير', msg: 'سيظهر تنبيه متابعة جديد للوالد.', meta: 'بعد 15 دقيقة' },
+    'remind-mother':  { title: 'تم ضبط التذكير', msg: 'سنذكرك بموعد نورة قبل وقت الحضور.', meta: 'غدا · 10:00 ص' },
+    'escort-father':  { title: 'تم التأكيد', msg: 'تم تسجيل أنك سترافق الوالد.', meta: 'موعد اليوم' },
+    'escort-unavailable': { title: 'تم التسجيل', msg: 'تم تسجيل عدم قدرتك على مرافقة الوالد.', meta: 'يمكن لمساند آخر الاستجابة' },
+    'stock-bro':      { title: 'تمت المتابعة', msg: 'تم تسجيل متابعة مخزون أحمد.', meta: 'بروفين 400' },
+    'stock-later':    { title: 'تذكير لاحق', msg: 'سيصلك تنبيه جديد بالمخزون.', meta: 'خلال اليوم' },
+    'remind-daughter':{ title: 'تم ضبط التذكير', msg: 'سنذكرك بموعد ليلى قبل وقت الحضور.', meta: 'الاثنين · 8:30 ص' },
+    'clinic-father':  { title: 'تم الاطلاع', msg: 'تم تسجيل دخول الوالد للعيادة.', meta: 'غرفة 312' },
+    'document-me':    { title: 'تم الفتح', msg: 'تم الوصول إلى نتيجة التحليل.', meta: 'سارة (أنا)' }
+  };
 
-        // Recording Functions
-        function openRecording() {
-            const view = document.getElementById('alert-view');
-            recSeconds = 0;
-            isPaused = false;
-            
-            view.innerHTML = `
-                <div class="dismiss-btn" onclick="cancelRecording()"><i class="ph-bold ph-x"></i></div>
-                <div class="recording-container">
-                    <div style="color: var(--danger-color); font-weight: 600;">جاري التسجيل...</div>
-                    <div class="waveform" id="waveform">
-                        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-                        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-                        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-                    </div>
-                    <div class="timer-big" id="rec-timer">00:00</div>
-                    <div class="rec-controls">
-                        <button class="rec-btn btn-pause" onclick="togglePause()" id="pause-btn">
-                            <i class="ph-fill ph-pause"></i>
-                        </button>
-                        <button class="rec-btn btn-stop" onclick="finishRecording()">
-                            <i class="ph-fill ph-stop"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-            view.classList.add('active');
-            startTimer();
-        }
+  const notifOverlay = document.getElementById('notif-overlay');
+  const confirmation = document.getElementById('confirmation');
+  let activeAlertIndex = 0;
+  let alertSwipeStartX = null;
 
-        function startTimer() {
-            clearInterval(recInterval);
-            recInterval = setInterval(() => {
-                if(!isPaused) {
-                    recSeconds++;
-                    const m = Math.floor(recSeconds / 60).toString().padStart(2, '0');
-                    const s = (recSeconds % 60).toString().padStart(2, '0');
-                    const timerEl = document.getElementById('rec-timer');
-                    if(timerEl) timerEl.innerText = `${m}:${s}`;
-                }
-            }, 1000);
-        }
+  function openIncomingAlert(index = 0) {
+    activeAlertIndex = (index + incomingAlerts.length) % incomingAlerts.length;
+    renderIncomingAlert();
+    notifOverlay.classList.add('active');
+  }
 
-        function togglePause() {
-            isPaused = !isPaused;
-            const wave = document.getElementById('waveform');
-            const btn = document.getElementById('pause-btn');
-            
-            if(isPaused) {
-                wave.classList.add('paused');
-                btn.innerHTML = '<i class="ph-fill ph-play"></i>';
-                btn.style.background = 'var(--accent-color)';
-                btn.style.color = 'black';
-            } else {
-                wave.classList.remove('paused');
-                btn.innerHTML = '<i class="ph-fill ph-pause"></i>';
-                btn.style.background = 'rgba(255,255,255,0.2)';
-                btn.style.color = 'white';
-            }
-        }
+  function renderIncomingAlert() {
+    const alert = incomingAlerts[activeAlertIndex];
+    const person = ALERT_PEOPLE[alert.person];
 
-        function finishRecording() {
-            clearInterval(recInterval);
-            const view = document.getElementById('alert-view');
-            // Show uploading state
-            view.innerHTML = `
-                <div class="recording-container">
-                    <i class="ph-bold ph-cloud-arrow-up" style="font-size: 40px; color: var(--info-color);"></i>
-                    <div>جاري الرفع...</div>
-                </div>
-            `;
-            
-            setTimeout(() => {
-                closeAlert();
-                showToast("تم الحفظ في المستندات: موعد عيادات الماسة (أسنان)");
-            }, 2000);
-        }
+    const detailHtml = alert.details ? `
+      <div class="incoming-detail-grid">
+        ${alert.details.map(row => `<div class="incoming-grid-cell"><span class="k">${row[0]}</span><span class="v">${row[1]}</span></div>`).join('')}
+      </div>` : '';
 
-        function cancelRecording() {
-            clearInterval(recInterval);
-            closeAlert();
-        }
+    const actionsHtml = alert.actions.map(action => `
+      <button class="incoming-action ${action.kind}" onclick="handleAlertAction('${action.confirm}')">${action.label}</button>
+    `).join('');
 
-        function closeAlert() {
-            document.getElementById('alert-view').classList.remove('active');
-        }
+    const isDetails = alert.layout === 'details';
 
-        function goHome() {
-            cancelRecording();
-            closeAlert();
-            document.getElementById('main-view').scrollTop = 0;
-        }
+    notifOverlay.innerHTML = `
+      <div class="incoming-head">
+        <span class="incoming-avatar" style="background:${person.color}">${person.letter}</span>
+        <div class="incoming-person">
+          <div class="incoming-name">${person.name}</div>
+          <div class="incoming-rel">${person.rel}</div>
+        </div>
+        <div class="incoming-status">
+          <span class="incoming-time">${alert.when}</span>
+          <span class="incoming-badge ${alert.urgent ? 'urgent' : ''}">${alert.type}</span>
+        </div>
+      </div>
+      <div class="incoming-content ${isDetails ? 'is-details' : ''}">
+        <div class="incoming-label">${alert.label}</div>
+        ${isDetails ? detailHtml : `
+          <div class="incoming-primary">${alert.primary}</div>
+          ${alert.highlight ? `<div class="incoming-highlight">${alert.highlight}</div>` : ''}
+          <div class="incoming-secondary">${alert.secondary}</div>
+          ${alert.warning ? `<div class="incoming-warning">${alert.warning}</div>` : ''}
+          ${detailHtml}
+        `}
+      </div>
+      <div class="incoming-actions">${actionsHtml}</div>
+      <div class="alert-preview-nav">
+        <button class="alert-nav-btn" onclick="previousIncomingAlert()" aria-label="التنبيه السابق">‹</button>
+        <span class="alert-counter">${activeAlertIndex + 1} / ${incomingAlerts.length}</span>
+        <button class="alert-nav-btn" onclick="nextIncomingAlert()" aria-label="التنبيه التالي">›</button>
+      </div>
+    `;
+  }
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2000);
-        }
+  function nextIncomingAlert() {
+    openIncomingAlert(activeAlertIndex + 1);
+  }
 
-        function triggerSOS() {
-            // Flash screen red effect
-            const screen = document.querySelector('.watch-screen');
-            screen.style.boxShadow = 'inset 0 0 50px red';
-            showToast("جاري إرسال نداء استغاثة...");
-            setTimeout(() => {
-                screen.style.boxShadow = 'inset 0 0 20px rgba(255,255,255,0.05)';
-            }, 3000);
-        }
-    </script>
+  function previousIncomingAlert() {
+    openIncomingAlert(activeAlertIndex - 1);
+  }
+
+  function handleAlertAction(key) {
+    if (key === 'close-alert') {
+      notifOverlay.classList.remove('active');
+      return;
+    }
+    const message = confirms[key];
+    if (!message) return;
+    notifOverlay.classList.remove('active');
+    confirmation.className = 'confirmation active meds';
+    confirmation.innerHTML = `
+      <div class="confirm-emoji">✓</div>
+      <div class="confirm-title">${message.title}</div>
+      <div class="confirm-msg">${message.msg}</div>
+      <div class="confirm-meta">${message.meta}</div>
+    `;
+    setTimeout(() => confirmation.classList.remove('active'), 2600);
+  }
+
+  notifOverlay.addEventListener('touchstart', (event) => {
+    alertSwipeStartX = event.changedTouches[0].clientX;
+  }, { passive: true });
+
+  notifOverlay.addEventListener('touchend', (event) => {
+    if (alertSwipeStartX === null) return;
+    const delta = event.changedTouches[0].clientX - alertSwipeStartX;
+    if (Math.abs(delta) > 36) {
+      delta < 0 ? nextIncomingAlert() : previousIncomingAlert();
+    }
+    alertSwipeStartX = null;
+  }, { passive: true });
+
+
+  // ───── NAVIGATION ─────
+  const VIEWS = ['face','home','menu','meds','appts','inventory','docs'];
+  // Views that belong to the Sehetna app (will hide the global status bar)
+  const SEHETNA_VIEWS = ['menu','meds','appts','inventory','docs'];
+ 
+  function showView(name) {
+    VIEWS.forEach(v => {
+      const el = document.getElementById(v + '-view');
+      if (!el) return;
+      el.style.display = (v === name) ? (v === 'home' ? 'block' : 'flex') : 'none';
+    });
+ 
+    // Hide global status bar when inside Sehetna so brand header (with time) takes its place
+    const display = document.querySelector('.display');
+    display.classList.toggle('in-app', SEHETNA_VIEWS.includes(name));
+ 
+    document.getElementById('control-center').classList.remove('active');
+    document.getElementById('sos-overlay').classList.remove('active');
+    clearInterval(sosTimer);
+    notifOverlay.classList.remove('active');
+    confirmation.classList.remove('active');
+    document.querySelectorAll('.v-scroll').forEach(s => s.scrollTop = 0);
+ 
+    if (name === 'menu')      resetMenuSnap();
+    if (name === 'meds')      { renderMeds();      resetPages('meds-pages', 'meds-dots'); }
+    if (name === 'appts')     { renderAppts();     resetPages('appts-pages', 'appts-dots'); }
+    if (name === 'inventory') { renderInventory(); resetPages('inv-pages', 'inv-dots'); }
+    if (name === 'docs')      { renderDocs(); }
+  }
+ 
+  // Reset vertical snap-scroll to first section
+  function resetMenuSnap() {
+    requestAnimationFrame(() => {
+      const c = document.getElementById('menu-snap');
+      if (!c) return;
+      c.scrollTop = 0;
+      document.querySelectorAll('#menu-side-dots .v-dot').forEach((d, i) => {
+        d.classList.toggle('active', i === 0);
+      });
+    });
+  }
+ 
+  function resetPages(pagesId, dotsId) {
+    requestAnimationFrame(() => {
+      const c = document.getElementById(pagesId);
+      if (!c) return;
+      c.scrollLeft = 0;
+      document.querySelectorAll(`#${dotsId} .dot`).forEach((d, i) => {
+        d.classList.toggle('active', i === 0);
+      });
+    });
+  }
+ 
+  function goHome()         { showView('home'); }
+  function openApps()       { showView('home'); }
+  function pressCrown()     { showView('face'); }
+  function openSehetna()    { showView('menu'); }
+  function openMeds()       { showView('meds'); }
+  function openMyMeds() {
+    showView('meds');
+    requestAnimationFrame(() => resetPages('meds-pages', 'meds-dots'));
+  }
+  function openAppts()      { showView('appts'); }
+  function openInventory()  { showView('inventory'); }
+  function openDocs()       { showView('docs'); }
+  function backToMenu()     { showView('menu'); }
+  function toggleCC()       { document.getElementById('control-center').classList.toggle('active'); }
+
+  // Side button: tap opens Control Center; long press opens Emergency SOS.
+  let sideHoldTimer = null;
+  let sideHoldActivated = false;
+  let sosTimer = null;
+  let sosSeconds = 5;
+
+  function startSideHold(e) {
+    if (e) e.preventDefault();
+    sideHoldActivated = false;
+    clearTimeout(sideHoldTimer);
+    sideHoldTimer = setTimeout(() => {
+      sideHoldActivated = true;
+      openSOS();
+    }, 750);
+  }
+  function endSideHold(e) {
+    if (e) e.preventDefault();
+    clearTimeout(sideHoldTimer);
+    if (!sideHoldActivated) toggleCC();
+  }
+  function cancelSideHold() { clearTimeout(sideHoldTimer); }
+  function openSOS() {
+    document.getElementById('control-center').classList.remove('active');
+    notifOverlay.classList.remove('active');
+    confirmation.classList.remove('active');
+    document.getElementById('sos-options').style.display = 'block';
+    document.getElementById('sos-countdown').classList.remove('active');
+    document.getElementById('sos-overlay').classList.add('active');
+  }
+  function closeSOS() {
+    clearInterval(sosTimer);
+    document.getElementById('sos-overlay').classList.remove('active');
+  }
+  function startSOSCountdown() {
+    clearInterval(sosTimer);
+    sosSeconds = 5;
+    document.getElementById('sos-count-num').textContent = sosSeconds;
+    document.getElementById('sos-options').style.display = 'none';
+    document.getElementById('sos-countdown').classList.add('active');
+    sosTimer = setInterval(() => {
+      sosSeconds -= 1;
+      document.getElementById('sos-count-num').textContent = sosSeconds;
+      if (sosSeconds <= 0) {
+        clearInterval(sosTimer);
+        document.getElementById('sos-overlay').classList.remove('active');
+        confirmation.className = 'confirmation active danger';
+        confirmation.innerHTML = '<div class="confirm-emoji">🆘</div><div class="confirm-title">تم تفعيل الاستغاثة</div><div class="confirm-msg">محاكاة: تم إرسال نداء الطوارئ ومشاركة الموقع مع جهات الاتصال.</div><div class="confirm-meta">نموذج تجريبي — لا يوجد اتصال فعلي</div>';
+        setTimeout(() => confirmation.classList.remove('active'), 4000);
+      }
+    }, 1000);
+  }
+  function cancelSOSCountdown() {
+    clearInterval(sosTimer);
+    document.getElementById('sos-options').style.display = 'block';
+    document.getElementById('sos-countdown').classList.remove('active');
+  }
+
+
+  function updateNextMedicationRemaining() {
+    const remainingEl = document.getElementById('next-med-remaining');
+    if (!remainingEl) return;
+
+    const riyadhParts = new Intl.DateTimeFormat('en-US', {
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric',
+      hour12: false, timeZone: 'Asia/Riyadh'
+    }).formatToParts(new Date()).reduce((acc, part) => {
+      if (part.type !== 'literal') acc[part.type] = Number(part.value);
+      return acc;
+    }, {});
+
+    const nowMinutes = riyadhParts.hour * 60 + riyadhParts.minute;
+    const medicationMinutes = 13 * 60;
+    let minutesLeft = medicationMinutes - nowMinutes;
+    if (minutesLeft <= 0) minutesLeft += 24 * 60;
+
+    const hours = Math.floor(minutesLeft / 60);
+    const minutes = minutesLeft % 60;
+    const arNumber = value => new Intl.NumberFormat('ar-SA').format(value);
+
+    if (hours === 0) {
+      remainingEl.textContent = `بعد ${arNumber(minutes)} د`;
+    } else {
+      remainingEl.textContent = `بعد ${arNumber(hours)} س`;
+    }
+  }
+
+  function updateWatchFace() {
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat('ar-SA', {
+      hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Riyadh'
+    }).formatToParts(now);
+    const hour = parts.find(p => p.type === 'hour')?.value || '09';
+    const minute = parts.find(p => p.type === 'minute')?.value || '41';
+    const dayPeriod = parts.find(p => p.type === 'dayPeriod')?.value || '';
+    document.getElementById('face-time').textContent = `${hour}:${minute}`;
+    document.getElementById('face-period').textContent = dayPeriod;
+    updateNextMedicationRemaining();
+    document.getElementById('face-date').textContent = new Intl.DateTimeFormat('ar-SA', {
+      weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Riyadh'
+    }).format(now);
+  }
+  function toggleBtn(b)     { b.dataset.active = b.dataset.active === 'true' ? 'false' : 'true'; }
+ 
+  function initObservers() {
+    // ───── Vertical snap-scroll for main menu (Apple Watch style) ─────
+    // On every scroll event, calculate which section is currently snapped:
+    //   index = round(scrollTop / clientHeight)
+    // Then update the side-dot indicator instantly. The active dot stretches
+    // into a capsule shape via CSS transitions (defined on .v-dot).
+    const menuSnap = document.getElementById('menu-snap');
+    const menuDots = document.querySelectorAll('#menu-side-dots .v-dot');
+    if (menuSnap && menuDots.length) {
+      menuSnap.addEventListener('scroll', () => {
+        const idx = Math.round(menuSnap.scrollTop / menuSnap.clientHeight);
+        menuDots.forEach((d, i) => d.classList.toggle('active', i === idx));
+      }, { passive: true });
+    }
+ 
+    // ───── Horizontal pagination still used inside sub-views (me/patient) ─────
+    const sets = [
+      ['meds-pages',  'meds-dots'],
+      ['appts-pages', 'appts-dots'],
+      ['inv-pages',   'inv-dots']
+    ];
+    sets.forEach(([containerId, dotsId]) => {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const pages = container.querySelectorAll('.h-page');
+      const dots  = document.querySelectorAll(`#${dotsId} .dot`);
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.intersectionRatio >= 0.6) {
+            const idx = Array.from(pages).indexOf(entry.target);
+            if (idx >= 0) dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+          }
+        });
+      }, { root: container, threshold: 0.6 });
+      pages.forEach(p => observer.observe(p));
+    });
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    initObservers();
+    updateWatchFace();
+    setInterval(updateWatchFace, 1000);
+  });
+</script>
 </body>
 </html>
