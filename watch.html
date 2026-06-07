@@ -1935,6 +1935,57 @@
     direction: ltr;
   }
 
+
+  /* ═══ Appointment date refinement ═══ */
+  .appointment-hero .hero-time {
+    margin-bottom: 7px;
+  }
+  .appointment-hero .appt-date-line {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 5px 0 6px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(209,231,220,.12);
+    border: 1px solid rgba(209,231,220,.18);
+    color: var(--watch-text-secondary);
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+  .appointment-hero .hero-sub {
+    margin-top: 0;
+    font-size: 12px;
+    color: var(--watch-text-muted);
+  }
+
+
+  /* ═══ Font restored to the original UI typeface ═══ */
+  body,
+  button,
+  input,
+  textarea,
+  select,
+  .display,
+  .watch,
+  .brand-header,
+  .app-header,
+  .hero,
+  .appointment-hero .appt-date-line,
+  .doc-name,
+  .doc-meta,
+  .incoming-head,
+  .incoming-content,
+  .incoming-action {
+    font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+  }
+
+  .appointment-hero .appt-date-line {
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
 </style>
 </head>
 <body>
@@ -2258,6 +2309,32 @@
     inventory: 'مخزون'
   };
 
+  let activeViewName = 'face';
+  const currentPageIndex = {
+    meds: 0,
+    appts: 0,
+    inventory: 0
+  };
+
+  function getActivePersonIndex() {
+    if (activeViewName === 'appts') return currentPageIndex.appts || 0;
+    if (activeViewName === 'meds') return currentPageIndex.meds || 0;
+    if (activeViewName === 'inventory') return currentPageIndex.inventory || 0;
+    return 0;
+  }
+
+  function getRecordingAppointment() {
+    const person = PEOPLE[getActivePersonIndex()] || PEOPLE[0];
+    const appointment = apptsByPerson[person.key] || apptsByPerson.me;
+    return { person, appointment };
+  }
+
+  function buildRecordingName() {
+    const { person, appointment } = getRecordingAppointment();
+    const owner = person.key === 'me' ? 'موعدي' : `موعد ${person.short}`;
+    return `${owner} — ${appointment.hospital} — ${appointment.dept}`;
+  }
+
   function contextualSectionTitle(sectionKey, person) {
     if (person.key === 'me') {
       return { meds: 'أدويتي', appts: 'مواعيدي', inventory: 'مخزوني' }[sectionKey];
@@ -2287,6 +2364,7 @@
           const index = Array.from(pages).indexOf(entry.target);
           if (index < 0) return;
           dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+          currentPageIndex[sectionKey] = index;
           updateSectionTitle(sectionKey, PEOPLE[index]);
         }
       });
@@ -2301,6 +2379,7 @@
         <div class="v-scroll">${renderBody(person)}</div>
       </div>`).join('');
     renderDots(dotsId);
+    currentPageIndex[sectionKey] = 0;
     updateSectionTitle(sectionKey, PEOPLE[0]);
     bindPageDots(containerId, dotsId, sectionKey);
   }
@@ -2353,11 +2432,12 @@
   }
 
   function apptContent(a) {
-    return `<div class="hero hero-appts">
+    return `<div class="hero hero-appts appointment-hero">
       <div class="hero-label">الموعد القادم</div>
       <div class="hero-time">${a.time}</div>
       <div class="hero-name">${a.hospital}</div>
-      <div class="hero-sub">${a.dept} · ${a.date}</div>
+      <div class="appt-date-line">${a.date}</div>
+      <div class="hero-sub">${a.dept}</div>
     </div>`;
   }
 
@@ -2442,9 +2522,14 @@
   // ───── RECORDING LOGIC ─────
   let recordingTimer = null;
   let recordingSeconds = 0;
+  let recordingContext = null;
  
   function startRecording() {
     recordingSeconds = 0;
+    recordingContext = {
+      name: buildRecordingName(),
+      appointment: getRecordingAppointment().appointment
+    };
     updateRecordingTimer();
     document.getElementById('record-overlay').classList.add('active');
     recordingTimer = setInterval(() => {
@@ -2468,15 +2553,16 @@
     const s = String(recordingSeconds % 60).padStart(2, '0');
     const duration = `${m}:${s}`;
     const date = "الآن";
-    const num = documents.filter(d => d.name.startsWith('تسجيل')).length + 1;
+    const appointmentName = recordingContext?.name || buildRecordingName();
+    const appointmentDate = recordingContext?.appointment?.date || date;
  
     // Clear "new" flag from previous documents
     documents.forEach(d => d.isNew = false);
  
-    // Add new recording at the top
+    // Add new recording at the top using the hospital appointment name
     documents.unshift({
-      name: `تسجيل ${num}`,
-      date: date,
+      name: appointmentName,
+      date: appointmentDate,
       duration: duration,
       isNew: true
     });
@@ -2688,6 +2774,7 @@
   const SEHETNA_VIEWS = ['menu','meds','appts','inventory','docs'];
  
   function showView(name) {
+    activeViewName = name;
     VIEWS.forEach(v => {
       const el = document.getElementById(v + '-view');
       if (!el) return;
