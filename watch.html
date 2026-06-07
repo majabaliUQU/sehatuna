@@ -1986,6 +1986,54 @@
     letter-spacing: 0;
   }
 
+
+  /* Clickable next medication hero */
+  .hero-med-clickable {
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, transform .12s ease;
+  }
+  .hero-med-clickable:hover {
+    background: #14211C;
+    border-color: rgba(209,231,220,.30);
+  }
+  .hero-med-clickable:active {
+    transform: scale(.985);
+  }
+  .hero-med-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .hero-med-copy {
+    flex: 1;
+    min-width: 0;
+  }
+  .hero-med-check {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    background: rgba(255,255,255,.04);
+    border-color: rgba(209,231,220,.42);
+  }
+  .hero-med-check svg {
+    width: 14px;
+    height: 14px;
+    fill: #FFFFFF;
+    opacity: 0;
+  }
+  .hero-med-clickable:hover .hero-med-check {
+    background: rgba(209,231,220,.10);
+    border-color: rgba(209,231,220,.78);
+  }
+  .hero-med-clickable:active .hero-med-check {
+    background: var(--watch-green);
+    border-color: var(--watch-green);
+  }
+  .hero-med-clickable:active .hero-med-check svg {
+    opacity: 1;
+  }
+
 </style>
 </head>
 <body>
@@ -2391,13 +2439,19 @@
   function medContent(list, personKey) {
     const pending = list.filter(m => !m.taken);
     const taken = list.filter(m => m.taken);
-    const next = pending[0];
+    const nextIndex = list.findIndex(m => !m.taken);
+    const next = nextIndex >= 0 ? list[nextIndex] : null;
     let out = '';
     if (next) {
-      out += `<div class="hero hero-meds">
-        <div class="hero-label">التذكير القادم</div>
-        <div class="hero-time">${next.time}</div>
-        <div class="hero-name">${next.name} — ${next.dose}</div>
+      out += `<div class="hero hero-meds hero-med-clickable" onclick="toggleMed('${personKey}', ${nextIndex})" role="button" tabindex="0" aria-label="تسجيل أخذ ${next.name}">
+        <div class="hero-med-content">
+          <div class="hero-med-copy">
+            <div class="hero-label">التذكير القادم · اضغطي للتسجيل</div>
+            <div class="hero-time">${next.time}</div>
+            <div class="hero-name">${next.name} — ${next.dose}</div>
+          </div>
+          <div class="med-check hero-med-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        </div>
       </div>`;
     }
     if (pending.length) {
@@ -2423,8 +2477,21 @@
   }
 
   function toggleMed(personKey, idx) {
+    const restoreIndex = Math.max(0, PEOPLE.findIndex(person => person.key === personKey));
     medsByPerson[personKey][idx].taken = !medsByPerson[personKey][idx].taken;
     renderMeds();
+
+    // Keep the user on the same person's page after the medicine state changes.
+    requestAnimationFrame(() => {
+      const container = document.getElementById('meds-pages');
+      if (!container) return;
+      container.scrollLeft = container.clientWidth * restoreIndex;
+      currentPageIndex.meds = restoreIndex;
+      document.querySelectorAll('#meds-dots .dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === restoreIndex);
+      });
+      updateSectionTitle('meds', PEOPLE[restoreIndex]);
+    });
   }
 
   function renderAppts() {
